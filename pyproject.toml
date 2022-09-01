@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "scratch"
+version = "0.1.0"
+description = ""
+authors = ["Marcel Wilson <trenchrats@gmail.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+clockify-api-client = "^0.1.0"
+python-dateutil = "^2.8.2"
+pytz = "^2022.2.1"
+mypy = "^0.971"
+black = "^22.8.0"
+flake8 = "^5.0.4"
+jira = "^3.4.0"
+pyderman = "^3.3.0"
+semantic-version = "^2.10.0"
+requests = "^2.28.1"
+screenpy = "^4.0.1"
+screenpy-selenium = "^4.0.2"
+screenpy-pyotp = "^4.0.1"
+isort = "^5.10.1"
+keyring = "^23.9.0"
+
+[tool.poetry.dev-dependencies]
+types-pytz = "^2022.2.1"
+types-python-dateutil = "^2.8.19"
+types-requests = "^2.28.9"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
