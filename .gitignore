@@ -1,0 +1,6 @@
+*.pyc
+*.pyo
+*.egg-info
+.idea
+logs/
+.mypy_cache
