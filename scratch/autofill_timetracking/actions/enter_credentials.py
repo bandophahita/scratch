@@ -9,7 +9,7 @@ from screenpy_selenium import Target
 from screenpy_selenium.actions import Enter
 from selenium.webdriver.common.action_chains import ActionChains
 
-from autofill_timetracking.ability import Authenticate
+from ..ability import Authenticate
 
 
 class EnterUsername:

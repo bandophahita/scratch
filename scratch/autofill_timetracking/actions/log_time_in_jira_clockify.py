@@ -4,11 +4,10 @@ import calendar
 from datetime import datetime
 from datetime import time as tdtime
 from datetime import timedelta
-from typing import Union
 
 from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
-from pytz.tzinfo import BaseTzInfo, DstTzInfo, StaticTzInfo
+from pytz.tzinfo import BaseTzInfo
 from screenpy import Actor
 from screenpy.actions import Eventually, Pause, See, SeeAllOf
 from screenpy.pacing import beat
@@ -20,21 +19,11 @@ from screenpy_selenium.questions import Element, Text
 from screenpy_selenium.resolutions import IsClickable, Visible
 from selenium.webdriver.common.by import By
 
-from autofill_timetracking import readabledelta as rdd
+from .. import readabledelta as rdd
 
 
 # @formatter:off
 # fmt: off
-class _UTCclass(BaseTzInfo):
-    def localize(self, dt: datetime, is_dst: Union[bool, None] = ...) -> datetime: ...
-    def normalize(self, dt: datetime) -> datetime: ...
-    def tzname(self, dt: Union[datetime, None]) -> str: ...
-    def utcoffset(self, dt: Union[datetime, None]) -> timedelta: ...
-    def dst(self, dt: Union[datetime, None]) -> timedelta: ...
-
-
-T_pytZone = Union[_UTCclass, StaticTzInfo, DstTzInfo]
-
 CLOCKIFY_START_STOP_BUTTON = Target.the(
     f"clockify start stop button").located_by((
         By.XPATH,
@@ -93,12 +82,6 @@ PROJECT_DROPDOWN_SEARCH_FIELD = Target.the(
     f"project dropdown search field").located_by((
         By.XPATH,
         '//input[@aria-controls="select2-projectSelectManual-results"]'
-        ))
-
-NEXTGEN_PROJECT_OPTION = Target.the(
-    f"nextgen project option").located_by((
-        By.XPATH,
-        '//*[@id="select2-projectSelectManual-results"]//li[string() = "A - NEXTGEN"]'
         ))
 
 MESSAGE_MANUAL = Target.the(
@@ -178,7 +161,7 @@ class LogTimeInJiraClockify(Performable):
         )
         actor.attempts_to(
             Click(PROJECT_DROPDOWN),
-            Eventually(Click(NEXTGEN_PROJECT_OPTION)),
+            Eventually(Click(self.project_option)),
         )
         actor.attempts_to(Eventually(Click(ADD_TIME_BUTTON)))
         actor.attempts_to(Eventually(See(Element(MESSAGE_MANUAL), IsClickable())))
@@ -198,13 +181,13 @@ class LogTimeInJiraClockify(Performable):
         return f"{hrs:02}{mins:02}{secs:02}"
 
     def __init__(
-        self, date: datetime, delta: timedelta, tzone: T_pytZone, starttime: tdtime
-    ):
+        self, date: datetime, delta: timedelta, tzone: BaseTzInfo, starttime: tdtime, project: Target):
         self.date = date
         self.delta = delta
         # TODO: perhaps we can get the zone directly from the date object?
         self.tzone = tzone
         self.starttime = starttime
+        self.project_option = project
 
 
 class ChooseDateFromPicker(Performable):
@@ -249,7 +232,7 @@ class ChooseDateFromPicker(Performable):
         actor.should(Eventually(See(Element(MONTH_HEADER), IsNot(Visible()))))
         return
 
-    def __init__(self, dt: datetime, tzone: T_pytZone):
+    def __init__(self, dt: datetime, tzone: BaseTzInfo):
         self.dt = dt
         # TODO: perhaps we can get the zone directly from the date object?
         self.tzone = tzone

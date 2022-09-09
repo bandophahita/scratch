@@ -1,10 +1,30 @@
 #!/usr/bin/env python3
+"""
+This script works on cloud based Jira projects which also utilize clockify.  This version
+currently assumes you login to Jira via google SSO. Other methods could be added.
+
+It is meant to fill in the remaining time of a given day for a single ticket.
+
+Typical Usage:
+
+    update_jira_timetracking.py 2022-09-09
+
+First Time Usage Example:
+
+    update_jira_timetracking.py 2022-09-09 -u USER -p PASS -U https://site.atlassian.net/browse/TICKET-1 -P MYPROJ -O f5e2cf77e89a178127ab17a5ac50370b -A a2db76a60306ba3e6e3029c28f0402b
+
+Things you will need to run this script:
+ - Your clockify API key
+ - Your google user/pass and OTP secret.  (the value that you QR code scan to add 2FA on your phone)
+
+"""
+
 from __future__ import annotations
 
 import argparse
 import calendar
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 
 import keyring
 import pytz
@@ -14,13 +34,14 @@ from dateutil.relativedelta import relativedelta
 from screenpy import Actor, settings
 from screenpy_pyotp.abilities import AuthenticateWith2FA
 from screenpy_selenium.abilities import BrowseTheWeb
+from screenpy_selenium import Target
+from selenium.webdriver.common.by import By
 
-from autofill_timetracking import readabledelta as rdd
-from autofill_timetracking import selenium_module
+from autofill_timetracking import readabledelta as rdd, selenium_module
 from autofill_timetracking.ability import Authenticate, ManageBrowserLocalStorage
 from autofill_timetracking.actions import (
     GetToJiraClockify,
-    LoginToJira,
+    LoginToJiraViaGoogle,
     LogTimeInJiraClockify,
 )
 
@@ -33,7 +54,7 @@ MONTH_MAP = {month: index for index, month in enumerate(calendar.month_name) if 
 FMT = "%Y-%m-%dT%H:%M:%SZ"
 KEY = "autofill_script"
 Namespace = argparse.Namespace
-T_default = Optional[Union[str, int]]
+T_default = Optional[str]
 
 
 def setup_selenium():
@@ -87,15 +108,6 @@ def convert_timedelta(td: timedelta) -> str:
 
 
 ################################################################################
-def get_val(args: Namespace, atr: str, default: T_default):
-    return args.__getattribute__(atr) if atr in args else default
-
-
-def check_for_value(args: Namespace, default: T_default, key: str, keyname: str):
-    if default is None and key not in args:
-        raise ValueError(f"Could not find {KEY}:{keyname} in keychain")
-
-
 def in_keychain(keyname: Optional[str]):
     return f"{'in keychain' if keyname else 'NOT IN KEYCHAIN'}"
 
@@ -103,23 +115,27 @@ def in_keychain(keyname: Optional[str]):
 def set_keychain(
     args: Namespace,
     default: T_default,
-    key: str,
-    keyname: str,
     value: str,
+    key: str,
+    keyname: str = None,
 ):
+    keyname = keyname or key
     if (default is None or args.setkeys) and key in args:
-        keyring.set_password(KEY, keyname, value)
+        keyring.set_password(KEY, keyname, f"{value}")
 
 
-def get_args_val(args: Namespace, default: T_default, key: str, keyname: str):
-    check_for_value(args, default, key, keyname)
-    value = get_val(args, key, default)
+def get_args_val(args: Namespace, default: T_default, key: str, keyname: str = None) -> str:
+    keyname = keyname or key
+    if default is None and key not in args:
+        raise ValueError(f"Could not find {KEY}:{keyname} in keychain")
+    value = getattr(args, key) if key in args else default
     return value
 
 
-def get_keychain_val(args: Namespace, default: T_default, key: str, keyname: str):
+def get_keychain_val(args: Namespace, default: T_default, key: str, keyname: str = None) -> str:
+    keyname = keyname or key
     value = get_args_val(args, default, key, keyname)
-    set_keychain(args, default, key, keyname, value)
+    set_keychain(args, default, value, key, keyname)
     return value
 
 
@@ -138,23 +154,26 @@ if __name__ == "__main__":
     keyname_timezone = "timezone"
     keyname_hours = "hours"
     keyname_daystart = "daystart"
-
-    default_timezone = "US/Central"
-    default_daystart = "08:00"
-    default_hours = 8
-    default_user = keyring.get_password(KEY, keyname_user)
-    default_url = keyring.get_password(KEY, keyname_url)
+    keyname_project = "project"
 
     USERNAME = "username"
     PASSWORD = "password"
     SETKEYS = "setkeys"
     TIMEZONE = "timezone"
     DAYSTART = "daystart"
+    PROJECT = "project"
     API = "api"
     URL = "url"
     OTP = "otp"
     DATE = "date"
     HOURS = "hours"
+
+    default_timezone = "US/Central"
+    default_daystart = "08:00"
+    default_hours = "8"
+    default_user = keyring.get_password(KEY, keyname_user)
+    default_url = keyring.get_password(KEY, keyname_url)
+    default_project = keyring.get_password(KEY, keyname_project)
 
     parser1.add_argument(
         "-u",
@@ -202,6 +221,13 @@ if __name__ == "__main__":
         default=argparse.SUPPRESS,
         dest=URL,
         help=f"Url of jira ticket (default: {default_url})",
+    )
+
+    parser2.add_argument(
+        "-P",
+        default=argparse.SUPPRESS,
+        dest=PROJECT,
+        help=f"Url of jira ticket (default: {default_project})",
     )
 
     parser2.add_argument(
@@ -258,15 +284,16 @@ if __name__ == "__main__":
     args = parser2.parse_args()
 
     ################################################################################
-    set_keychain(args, default_user, USERNAME, keyname_user, username)
+    set_keychain(args, default_user, username, USERNAME, keyname_user)
 
     password = get_keychain_val(args, default_pass, PASSWORD, keyname_pass)
     url = get_keychain_val(args, default_url, URL, keyname_url)
     otp = get_keychain_val(args, default_otp, OTP, keyname_otp)
     api = get_keychain_val(args, default_api, API, keyname_api)
+    project = get_keychain_val(args, default_project, PROJECT, keyname_project)
 
     timezone = get_args_val(args, default_timezone, TIMEZONE, keyname_timezone)
-    hours = get_args_val(args, default_hours, HOURS, keyname_hours)
+    hours = int(get_args_val(args, default_hours, HOURS, keyname_hours))
     daystart = get_args_val(args, default_daystart, DAYSTART, keyname_daystart)
 
     tzone = pytz.timezone(timezone)
@@ -283,31 +310,47 @@ if __name__ == "__main__":
     else:
         raise Exception("unhandled condition")
 
+    # @formatter:off
+    # fmt: off
+    PROJECT_OPTION = Target.the(
+        f"project option").located_by((
+            By.XPATH,
+            f'//*[@id="select2-projectSelectManual-results"]//li[string() = "{project}"]'
+            ))
+    # fmt: on
+    # @formatter:on
+
     ################################################################################
     client = ClockifyAPIClient().build(api, "api.clockify.me/v1")
 
-    ################################################################################
-    # SELENIUM STARTS
-    ################################################################################
-    driver = setup_selenium()
-    actor = Actor.named("user").who_can(
-        BrowseTheWeb.using(driver),
-        Authenticate.with_user_pass(username, password),
-        ManageBrowserLocalStorage.using(driver),
-        AuthenticateWith2FA.using_secret(otp),
-    )
+    actor = Actor.named("user")
 
-    actor.attempts_to(LoginToJira(url))
-    actor.attempts_to(GetToJiraClockify())
-    day = start
+    day = start - relativedelta(days=1)
+    runonce = True
     ################################################################################
     while day <= end:
-        # skip weekends
-        if day.weekday() < 5:
-            total_hours = get_hours_total_for_day(client, day)
-            needed_hours = timedelta(hours=hours) - total_hours
-            if needed_hours:
-                actor.attempts_to(
-                    LogTimeInJiraClockify(day, needed_hours, tzone, start_time)
-                )
         day += relativedelta(days=1)
+        # skip weekends
+        if day.weekday() >= 5:
+            continue
+        total_hours = get_hours_total_for_day(client, day)
+        needed_hours = timedelta(hours=hours) - total_hours
+        if not needed_hours:
+            continue
+
+        if runonce:
+            driver = setup_selenium()
+            actor.who_can(
+                BrowseTheWeb.using(driver),
+                Authenticate.with_user_pass(username, password),
+                ManageBrowserLocalStorage.using(driver),
+                AuthenticateWith2FA.using_secret(otp),
+            )
+
+            actor.attempts_to(LoginToJiraViaGoogle(url))
+            actor.attempts_to(GetToJiraClockify())
+            runonce = False
+
+        actor.attempts_to(
+            LogTimeInJiraClockify(day, needed_hours, tzone, start_time, PROJECT_OPTION)
+        )

@@ -10,7 +10,7 @@ from screenpy_selenium.questions import Element
 from screenpy_selenium.resolutions import IsClickable
 from selenium.webdriver.common.by import By
 
-from autofill_timetracking.actions import EnterPassword, EnterUsername
+from . import EnterPassword, EnterUsername
 
 # @formatter:off
 # fmt: off
@@ -53,8 +53,8 @@ CODE_FROM_AUTHENTICATOR_BUTTON = Target.the(
 # @formatter:on
 
 
-class LoginToJira(Performable):
-    @beat("[TASK] {} attempts to LoginToJira")
+class LoginToJiraViaGoogle(Performable):
+    @beat("[TASK] {} attempts to LoginToJiraViaGoogle")
     def perform_as(self, actor: Actor):
         actor.attempts_to(Open(self.url))
         actor.attempts_to(Eventually(Click(CONTINUE_WITH_GOOGLE_BUTTON)))
@@ -88,7 +88,7 @@ class LoginToJira(Performable):
 
     @staticmethod
     def using(url: str):
-        return LoginToJira(url)
+        return LoginToJiraViaGoogle(url)
 
     def __init__(self, url: str):
         self.url = url
