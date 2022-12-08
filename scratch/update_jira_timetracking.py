@@ -306,7 +306,7 @@ if __name__ == "__main__":
     if len(dates) == 2:
         end = tzone.localize(parse(dates[1]))
     elif len(dates) == 1:
-        end = start
+        end = start + relativedelta(days=1)
     else:
         raise Exception("unhandled condition")
 
@@ -325,18 +325,19 @@ if __name__ == "__main__":
 
     actor = Actor.named("user")
 
-    # go back one day (this is only temporary since we move up one day in the loop.
-    day = start - relativedelta(days=1)
+    day = start
     runonce = True
     ################################################################################
-    while day <= end:
-        day += relativedelta(days=1)
+    while day < end:
         # skip weekends
         if day.weekday() >= 5:
+            day += relativedelta(days=1)
             continue
+
         total_hours = get_hours_total_for_day(client, day)
         needed_hours = timedelta(hours=hours) - total_hours
         if not needed_hours:
+            day += relativedelta(days=1)
             continue
 
         if runonce:
@@ -355,3 +356,4 @@ if __name__ == "__main__":
         actor.attempts_to(
             LogTimeInJiraClockify(day, needed_hours, tzone, start_time, PROJECT_OPTION)
         )
+        day += relativedelta(days=1)
