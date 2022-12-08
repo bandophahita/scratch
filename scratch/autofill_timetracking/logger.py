@@ -139,7 +139,7 @@ class ScreenpyLogger(__logger):  # type: ignore
 
 def create_logger(name: str) -> ScreenpyLogger:
     logging.setLoggerClass(ScreenpyLogger)
-    # pycharm gets confused about getLogger returning AcuLogger. Disabling the inspection error
+    # pycharm gets confused about getLogger returning ScreenpyLogger. Disabling the inspection error
     # mypy also doesn't understand this since it is a dynamic call.
     # noinspection PyTypeChecker
     logger: ScreenpyLogger = logging.getLogger(name)  # type: ignore
@@ -147,3 +147,18 @@ def create_logger(name: str) -> ScreenpyLogger:
     logger.setLevel(DEBUG)
     # logger.propagate = False
     return logger
+
+
+def enable_logger(logger: ScreenpyLogger, level: int = ScreenpyLogger.DEBUG, fmt: logging.Formatter = None):
+    """DO NOT USE THIS FUNCTION WHEN USING automation.trace."""
+    if fmt is None:
+        # fmtstr = '{asctime} {filename}:{lineno} {levelname:>8} [{name}] {msg} '
+        # fmtstr = '{asctime} {filename}:{lineno:<4} {levelname:>8} {msg} '
+        fmtstr = '{asctime} {levelname:>8} {msg} '
+        fmt = logging.Formatter(fmtstr, datefmt="%H:%M:%S", style='{')
+
+    logger.setLevel(level)
+    ch = logging.StreamHandler(sys.__stdout__)
+    ch.setLevel(level)
+    ch.setFormatter(fmt)
+    logger.addHandler(ch)

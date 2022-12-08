@@ -45,10 +45,15 @@ from autofill_timetracking.actions import (
     LogTimeInJiraClockify,
 )
 
-# from autofill_timetracking.logger import create_logger
+from autofill_timetracking.logger import create_logger, enable_logger
+from screenpy.narration.adapters.stdout_adapter import StdOutAdapter, StdOutManager
+from screenpy.pacing import the_narrator
 
 # uncomment to use our own logger that handles file & line better
-# the_narrator.adapters = [StdOutAdapter(StdOutManager(create_logger("screenpy2")))]
+logger = create_logger("screenpy2")
+the_narrator.adapters = [StdOutAdapter(StdOutManager(logger))]
+enable_logger(logger)
+
 
 MONTH_MAP = {month: index for index, month in enumerate(calendar.month_name) if month}
 FMT = "%Y-%m-%dT%H:%M:%SZ"

@@ -702,9 +702,10 @@ class Selenium:
             self.driver.quit()
 
     ############################################################################
-    def __del__(self):
-        # print("__del__ called in acuselenium")
-        self.quit()
+    # Does not work here -- monkeypatch the browsers instead.
+    # def __del__(self):
+    #     print("__del__ called in acuselenium")
+    #     self.quit()
 
     ############################################################################
     def __repr__(self):
