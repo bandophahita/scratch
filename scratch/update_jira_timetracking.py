@@ -299,13 +299,13 @@ if __name__ == "__main__":
     tzone = pytz.timezone(timezone)
     start_time = tzone.localize(parse(daystart)).time().replace(tzinfo=tzone)
 
-    dts = args.__getattribute__(DATE)
-    dt_start = dts[0]
+    dates = args.__getattribute__(DATE)
+    dt_start = dates[0]
     start = tzone.localize(parse(dt_start))
 
-    if len(dts) == 2:
-        end = tzone.localize(parse(dts[1]))
-    elif len(dts) == 1:
+    if len(dates) == 2:
+        end = tzone.localize(parse(dates[1]))
+    elif len(dates) == 1:
         end = start
     else:
         raise Exception("unhandled condition")
@@ -325,6 +325,7 @@ if __name__ == "__main__":
 
     actor = Actor.named("user")
 
+    # go back one day (this is only temporary since we move up one day in the loop.
     day = start - relativedelta(days=1)
     runonce = True
     ################################################################################
