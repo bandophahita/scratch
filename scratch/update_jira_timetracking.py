@@ -58,7 +58,7 @@ T_default = Optional[str]
 
 
 def setup_selenium():
-    settings.TIMEOUT = 10
+    settings.TIMEOUT = 20
     browser = "Chrome"
     headless = False
     driver = selenium_module.Selenium.create_driver(browser, headless)
@@ -120,7 +120,7 @@ def set_keychain(
     keyname: str = None,
 ):
     keyname = keyname or key
-    if (default is None or args.setkeys) and key in args:
+    if (default is None or default != value or args.setkeys) and key in args:
         keyring.set_password(KEY, keyname, f"{value}")
 
 
