@@ -210,7 +210,7 @@ class ChooseDateFromPicker(Performable):
 
         for cnt in range(abs(clicks)):
             actor.attempts_to(Eventually(Click(button)))
-            actor.attempts_to(Pause(0.25).seconds_because(""))
+            actor.attempts_to(Pause(0.25).seconds_because("javascript updating"))
 
         monthname = Text(MONTH_HEADER).answered_by(actor)
         if MONTH_MAP[monthname] != dt.month:
