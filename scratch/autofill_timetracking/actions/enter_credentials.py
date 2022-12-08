@@ -78,7 +78,7 @@ class EnterPassword:
     def perform_as(self, the_actor: Actor) -> None:
         """Direct the Actor to enter their password into the element."""
         password = the_actor.uses_ability_to(Authenticate).to_get_password()
-        the_actor.attempts_to(Enter.the_text(password).into_the(self.target))
+        the_actor.attempts_to(Enter.the_secret(password).into_the(self.target))
 
     @beat("  Enter their password into the {target}!")
     def add_to_chain(self, the_actor: Actor, the_chain: ActionChains) -> None:
