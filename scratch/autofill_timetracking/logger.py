@@ -154,7 +154,8 @@ def enable_logger(logger: ScreenpyLogger, level: int = ScreenpyLogger.DEBUG, fmt
     if fmt is None:
         # fmtstr = '{asctime} {filename}:{lineno} {levelname:>8} [{name}] {msg} '
         # fmtstr = '{asctime} {filename}:{lineno:<4} {levelname:>8} {msg} '
-        fmtstr = '{asctime} {levelname:>8} {msg} '
+        # fmtstr = '{asctime} {levelname:>8} {msg} '
+        fmtstr = '{asctime} {msg} '
         fmt = logging.Formatter(fmtstr, datefmt="%H:%M:%S", style='{')
 
     logger.setLevel(level)
