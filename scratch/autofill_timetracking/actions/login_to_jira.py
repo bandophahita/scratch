@@ -5,7 +5,7 @@ from screenpy.actions import Eventually, SeeAnyOf
 from screenpy.pacing import beat
 from screenpy.protocols import Performable
 from screenpy_selenium import Target
-from screenpy_selenium.actions import Click, Enter2FAToken, Open
+from screenpy_selenium.actions import Click, Enter2FAToken, Open, Wait
 from screenpy_selenium.questions import Element
 from screenpy_selenium.resolutions import IsClickable
 from selenium.webdriver.common.by import By
@@ -57,13 +57,16 @@ class LoginToJiraViaGoogle(Performable):
     @beat("[TASK] {} attempts to LoginToJiraViaGoogle")
     def perform_as(self, actor: Actor):
         actor.attempts_to(Open(self.url))
+        actor.attempts_to(Wait.for_the(CONTINUE_WITH_GOOGLE_BUTTON).to_be_clickable())
         actor.attempts_to(Eventually(Click(CONTINUE_WITH_GOOGLE_BUTTON)))
         actor.attempts_to(
             Eventually(EnterUsername.into_the(LOGIN_FIELD)),
+            Wait.for_the(NEXT_BUTTON).to_be_clickable(),
             Eventually(Click(NEXT_BUTTON)),
         )
         actor.attempts_to(
             Eventually(EnterPassword.into_the(PASSWORD_FIELD)),
+            Wait.for_the(NEXT_BUTTON).to_be_clickable(),
             Eventually(Click(NEXT_BUTTON)),
         )
 

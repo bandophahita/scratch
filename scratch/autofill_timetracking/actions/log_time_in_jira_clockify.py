@@ -14,7 +14,7 @@ from screenpy.pacing import beat
 from screenpy.protocols import Performable
 from screenpy.resolutions import IsNot
 from screenpy_selenium import Target
-from screenpy_selenium.actions import Chain, Click, Enter, SwitchTo
+from screenpy_selenium.actions import Chain, Click, Enter, SwitchTo, Wait
 from screenpy_selenium.questions import Element, Text
 from screenpy_selenium.resolutions import IsClickable, Visible
 from selenium.webdriver.common.by import By
@@ -123,6 +123,7 @@ MONTH_MAP = {month: index for index, month in enumerate(calendar.month_name) if 
 class GetToJiraClockify(Performable):
     @beat("[TASK] {} attempts to GetToJiraClockify")
     def perform_as(self, actor: Actor):
+        actor.attempts_to(Wait.for_the(CLOCKIFY_START_STOP_BUTTON).to_be_clickable())
         actor.attempts_to(Eventually(Click(CLOCKIFY_START_STOP_BUTTON)))
         actor.attempts_to(Eventually(SwitchTo.the(CLOCKIFY_TIMESHEET_FRAME)))
         actor.attempts_to(Eventually(Click(CLOCKIFY_MANUAL_BUTTON)))
