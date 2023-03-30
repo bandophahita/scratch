@@ -21,6 +21,7 @@ Things you will need to run this script:
 
 from __future__ import annotations
 
+import sys
 import argparse
 import calendar
 from datetime import datetime, timedelta
@@ -232,7 +233,7 @@ if __name__ == "__main__":
         "-P",
         default=argparse.SUPPRESS,
         dest=PROJECT,
-        help=f"Url of jira ticket (default: {default_project})",
+        help=f"Project name (default: {default_project})",
     )
 
     parser2.add_argument(
@@ -296,6 +297,9 @@ if __name__ == "__main__":
     otp = get_keychain_val(args, default_otp, OTP, keyname_otp)
     api = get_keychain_val(args, default_api, API, keyname_api)
     project = get_keychain_val(args, default_project, PROJECT, keyname_project)
+
+    if args.setkeys:
+        sys.exit()
 
     timezone = get_args_val(args, default_timezone, TIMEZONE, keyname_timezone)
     hours = int(get_args_val(args, default_hours, HOURS, keyname_hours))
