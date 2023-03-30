@@ -82,7 +82,7 @@ class LoginToJiraViaGoogle(Performable):
 
         actor.attempts_to(
             Eventually(Enter2FAToken.into_the(TOTP_PIN_FIELD)),
-            Click(NEXT_BUTTON),
+            Eventually(Click(NEXT_BUTTON)),
         )
         return
 
