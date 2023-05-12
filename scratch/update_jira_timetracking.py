@@ -64,8 +64,8 @@ T_default = Optional[str]
 
 
 def setup_selenium():
-    settings.TIMEOUT = 20
-    browser = "Chrome"
+    settings.TIMEOUT = 60
+    browser = "Firefox"
     headless = False
     driver = selenium_module.Selenium.create_driver(browser, headless)
     driver.set_window_size(1280, 960)
@@ -126,7 +126,7 @@ def set_keychain(
     keyname: str = None,
 ):
     keyname = keyname or key
-    if (default is None or default != value or args.setkeys) and key in args:
+    if (default is None or default != value) and key in args:
         keyring.set_password(KEY, keyname, f"{value}")
 
 
@@ -152,6 +152,17 @@ if __name__ == "__main__":
     keys.
     It's possible for more than one user to run this script on the same machine.  Each
     user's values are stored seperately in the keychain.
+    
+    To update the project in keychain
+    update_jira_timetracking.py -P PROJECT_NAME YYYY-MM-DD YYYY-MM-DD
+    
+    update password in keychain
+    update_jira_timetracking.py -p password YYYY-MM-DD YYYY-MM-DD
+    
+    update api key in keychain
+    update_jira_timetracking.py -A APIKEY YYYY-MM-DD YYYY-MM-DD
+    
+    
     """
     parser1 = argparse.ArgumentParser(add_help=False)
 
@@ -237,7 +248,7 @@ if __name__ == "__main__":
     )
 
     parser2.add_argument(
-        "-O",
+        "--otp",
         default=argparse.SUPPRESS,
         dest=OTP,
         help=f"one time password secret (default: {in_keychain(default_otp)})",
@@ -274,13 +285,6 @@ if __name__ == "__main__":
     )
 
     parser2.add_argument(
-        "--setkeys",
-        dest=SETKEYS,
-        action="store_true",
-        help="Update the default values in keychain",
-    )
-
-    parser2.add_argument(
         "-h",
         "--help",
         action="help",
@@ -298,15 +302,12 @@ if __name__ == "__main__":
     api = get_keychain_val(args, default_api, API, keyname_api)
     project = get_keychain_val(args, default_project, PROJECT, keyname_project)
 
-    if args.setkeys:
-        sys.exit()
-
     timezone = get_args_val(args, default_timezone, TIMEZONE, keyname_timezone)
     hours = int(get_args_val(args, default_hours, HOURS, keyname_hours))
     daystart = get_args_val(args, default_daystart, DAYSTART, keyname_daystart)
 
     tzone = pytz.timezone(timezone)
-    start_time = tzone.localize(parse(daystart)).time().replace(tzinfo=tzone)
+    start_time = tzone.localize(parse(daystart)).time()
 
     dates = args.__getattribute__(DATE)
     dt_start = dates[0]
@@ -363,6 +364,6 @@ if __name__ == "__main__":
             runonce = False
 
         actor.attempts_to(
-            LogTimeInJiraClockify(day, needed_hours, tzone, start_time, PROJECT_OPTION)
+            LogTimeInJiraClockify(day, needed_hours, start_time, PROJECT_OPTION)
         )
         day += relativedelta(days=1)

@@ -7,7 +7,6 @@ from datetime import timedelta
 
 from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
-from pytz.tzinfo import BaseTzInfo
 from screenpy import Actor
 from screenpy.actions import Eventually, Pause, See, SeeAllOf
 from screenpy.pacing import beat
@@ -145,7 +144,7 @@ class GetToJiraClockify(Performable):
 class LogTimeInJiraClockify(Performable):
     @beat("[TASK] {} attempts to LogTimeInJiraClockify")
     def perform_as(self, actor: Actor):
-        actor.attempts_to(ChooseDateFromPicker(self.date, self.tzone))
+        actor.attempts_to(ChooseDateFromPicker(self.date))
         hours_value = self._convert_timedelta(self.delta)
 
         actor.attempts_to(
@@ -182,11 +181,9 @@ class LogTimeInJiraClockify(Performable):
         return f"{hrs:02}{mins:02}{secs:02}"
 
     def __init__(
-        self, date: datetime, delta: timedelta, tzone: BaseTzInfo, starttime: tdtime, project: Target):
+        self, date: datetime, delta: timedelta, starttime: tdtime, project: Target):
         self.date = date
         self.delta = delta
-        # TODO: perhaps we can get the zone directly from the date object?
-        self.tzone = tzone
         self.starttime = starttime
         self.project_option = project
 
@@ -195,23 +192,20 @@ class ChooseDateFromPicker(Performable):
     @beat("[TASK] {} attempts to ChooseDateFromPicker")
     def perform_as(self, actor: Actor):
         dt = self.dt
-        tzone = self.tzone
 
         actor.attempts_to(Eventually(Click(DATE_PICKER)))
         monthname = Text(MONTH_HEADER).answered_by(actor)
         yeartext = Text(YEAR_HEADER).answered_by(actor)
-        dt_target_rounded = datetime(
-            dt.year, dt.month, 1, dt.hour, dt.minute, dt.second, tzinfo=dt.tzinfo
-        )
-        picker_dt = tzone.localize(parse(f"{monthname} 1 {yeartext}"))
+        dt_target_rounded = datetime(dt.year, dt.month, 1, dt.hour, dt.minute, dt.second)
+        picker_dt = parse(f"{monthname} 1 {yeartext}")
+        d = relativedelta(dt_target_rounded, picker_dt)
+        month_offset = d.months + (12 * d.years)
+        button = PREV_MONTH if month_offset < 0 else NEXT_MONTH
+        clicks = abs(month_offset)
 
-        d = relativedelta(dt_target_rounded.astimezone((tzone)), picker_dt)
-        clicks = d.months + (12 * d.years)
-        button = PREV_MONTH if clicks < 0 else NEXT_MONTH
-
-        for cnt in range(abs(clicks)):
+        for cnt in range(clicks):
             actor.attempts_to(Eventually(Click(button)))
-            actor.attempts_to(Pause(0.25).seconds_because("javascript updating"))
+            actor.attempts_to(Pause(0.35).seconds_because("javascript updating"))
 
         monthname = Text(MONTH_HEADER).answered_by(actor)
         if MONTH_MAP[monthname] != dt.month:
@@ -222,7 +216,7 @@ class ChooseDateFromPicker(Performable):
         # @formatter:off
         # fmt: off
         DATE_BUTTON = Target.the(
-            f"date button").located_by((
+            f"date {dt.day} button").located_by((
                 By.XPATH,
                 f'//td[@data-handler="selectDay"][string() = "{dt.day}"]'
                 ))
@@ -233,7 +227,5 @@ class ChooseDateFromPicker(Performable):
         actor.should(Eventually(See(Element(MONTH_HEADER), IsNot(Visible()))))
         return
 
-    def __init__(self, dt: datetime, tzone: BaseTzInfo):
+    def __init__(self, dt: datetime):
         self.dt = dt
-        # TODO: perhaps we can get the zone directly from the date object?
-        self.tzone = tzone

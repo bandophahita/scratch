@@ -32,7 +32,7 @@ NEXT_BUTTON = Target.the(
 PASSWORD_FIELD = Target.the(
     f"password field").located_by((
         By.NAME,
-        'password'
+        'Passwd'
         ))
 TOTP_PIN_FIELD = Target.the(
     f"TOTP PIN field").located_by((
@@ -49,6 +49,11 @@ CODE_FROM_AUTHENTICATOR_BUTTON = Target.the(
         By.XPATH,
         '//div[@role="link"][contains(string(), "Google Authenticator")]'
         ))
+PROGRESS_BAR = Target("progress bar").located(
+    '//*[@role="progressbar"]'
+)
+
+
 # fmt: on
 # @formatter:on
 
@@ -59,16 +64,15 @@ class LoginToJiraViaGoogle(Performable):
         actor.attempts_to(Open(self.url))
         actor.attempts_to(Wait.for_the(CONTINUE_WITH_GOOGLE_BUTTON).to_be_clickable())
         actor.attempts_to(Eventually(Click(CONTINUE_WITH_GOOGLE_BUTTON)))
-        actor.attempts_to(
-            Eventually(EnterUsername.into_the(LOGIN_FIELD)),
-            Wait.for_the(NEXT_BUTTON).to_be_clickable(),
-            Eventually(Click(NEXT_BUTTON)),
-        )
-        actor.attempts_to(
-            Eventually(EnterPassword.into_the(PASSWORD_FIELD)),
-            Wait.for_the(NEXT_BUTTON).to_be_clickable(),
-            Eventually(Click(NEXT_BUTTON)),
-        )
+
+        actor.attempts_to(Eventually(EnterUsername.into_the(LOGIN_FIELD)))
+        actor.attempts_to(Wait.for_the(NEXT_BUTTON).to_be_clickable())
+        actor.attempts_to(Eventually(Click(NEXT_BUTTON)))
+        actor.attempts_to(Wait.for_(PROGRESS_BAR).to_disappear())
+
+        actor.attempts_to(Eventually(EnterPassword.into_the(PASSWORD_FIELD)))
+        actor.attempts_to(Wait.for_the(NEXT_BUTTON).to_be_clickable())
+        actor.attempts_to(Eventually(Click(NEXT_BUTTON)))
 
         actor.should(
             Eventually(
