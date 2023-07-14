@@ -1,13 +1,11 @@
 from __future__ import annotations
 
 import calendar
-from datetime import datetime
-from datetime import time as tdtime
-from datetime import timedelta
+from datetime import datetime, time as tdtime, timedelta
+from typing import TYPE_CHECKING
 
 from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
-from screenpy import Actor
 from screenpy.actions import Eventually, Pause, See, SeeAllOf
 from screenpy.pacing import beat
 from screenpy.protocols import Performable
@@ -16,105 +14,79 @@ from screenpy_selenium import Target
 from screenpy_selenium.actions import Chain, Click, Enter, SwitchTo, Wait
 from screenpy_selenium.questions import Element, Text
 from screenpy_selenium.resolutions import IsClickable, Visible
-from selenium.webdriver.common.by import By
 
 from .. import readabledelta as rdd
+from ..by import By
+
+if TYPE_CHECKING:
+    from screenpy import Actor
+
+DETAIL_SUMMARY_HEADER = Target("Details Summary Header").located(
+    By.xpath(
+        "//div[@data-testid='issue.views.issue-details.issue-layout.container-right']"
+        "//summary[contains(string(), 'Details')]"
+    )
+)
+
+CLOCKIFY_SUMMARY_HEADER = Target("Clockify Summary Header").located(
+    By.xpath(
+        "//div[@data-testid='issue.views.issue-details.issue-layout.container-right']"
+        "//summary[contains(string(), 'Clockify')]"
+    )
+)
 
 
-# @formatter:off
-# fmt: off
-CLOCKIFY_START_STOP_BUTTON = Target.the(
-    f"clockify start stop button").located_by((
-        By.XPATH,
-        '//*[@data-testid="issue.views.issue-base.context.ecosystem.connect.field"][contains(string(), "Start / Stop")]'
-        ))
+CLOCKIFY_START_STOP_BUTTON = Target.the("Clockify Start/Stop Button").located_by(
+    By.xpath(
+        '//*[@data-testid="issue.views.issue-base.context.ecosystem.connect.field"]'
+        '[contains(string(), "Start / Stop")]'
+    )
+)
 
-CLOCKIFY_MANUAL_BUTTON = Target.the(
-    f"clockify manual button").located_by((
-        By.ID,
-        'switchManual'
-        ))
+CLOCKIFY_MANUAL_BUTTON = Target.the("Clockify Manual Button").located_by(
+    (By.ID, "switchManual")
+)
 
-CLOCKIFY_TIMESHEET_FRAME = Target.the(
-    f"clockify_timesheet_frame").located_by((
-        By.XPATH,
-        '//iframe[contains(@id, "clockify-timesheets-time-tracking-reports__clk-stopwatch")]'
-        ))
+CLOCKIFY_TIMESHEET_FRAME = Target.the("Clockify_timesheet_frame").located_by(
+    By.xpath(
+        "//iframe[contains(@id, "
+        '"clockify-timesheets-time-tracking-reports__clk-stopwatch")]'
+    )
+)
 
-TIME_INPUT_FIELD = Target.the(
-    f"time input field").located_by((
-        By.ID,
-        'time-input'
-        ))
+TIME_INPUT_FIELD = Target.the("Time Input Field").located_by(By.id("time-input"))
 
-DATE_PICKER = Target.the(
-    f"date picker").located_by((
-        By.ID,
-        'datepicker'
-        ))
+DATE_PICKER = Target.the("Date Picker").located_by(By.id("datepicker"))
 
-FROM_TIME_FIELD = Target.the(
-    f"from time field").located_by((
-        By.ID,
-        'timeFromManual'
-        ))
+FROM_TIME_FIELD = Target.the("From Time Field").located_by(By.id("timeFromManual"))
 
-TO_TIME_FIELD = Target.the(
-    f"to time field").located_by((
-        By.ID,
-        'timeToManual'
-        ))
+TO_TIME_FIELD = Target.the("To Time Field").located_by(By.id("timeToManual"))
 
-ADD_TIME_BUTTON = Target.the(
-    f"add time button").located_by((
-        By.ID,
-        'addButtonManual'
-        ))
+ADD_TIME_BUTTON = Target.the("Add Time Button").located_by(By.id("addButtonManual"))
 
-PROJECT_DROPDOWN = Target.the(
-    f"project dropdown").located_by((
-        By.ID,
-        'select2-projectSelectManual-container'
-        ))
+PROJECT_DROPDOWN = Target.the("Project Dropdown").located_by(
+    By.id("select2-projectSelectManual-container")
+)
 
-PROJECT_DROPDOWN_SEARCH_FIELD = Target.the(
-    f"project dropdown search field").located_by((
-        By.XPATH,
-        '//input[@aria-controls="select2-projectSelectManual-results"]'
-        ))
+PROJECT_DROPDOWN_SEARCH_FIELD = Target.the("Project Dropdown Search Rield").located_by(
+    By.xpath('//input[@aria-controls="select2-projectSelectManual-results"]')
+)
 
-MESSAGE_MANUAL = Target.the(
-    f"message manual").located_by((
-        By.ID,
-        'messageManual'
-        ))
+MESSAGE_MANUAL = Target.the("Message Manual").located_by(By.id("messageManual"))
 
 # datepicker
-MONTH_HEADER = Target.the(
-    f"month header").located_by((
-        By.XPATH,
-        '//div[@id="ui-datepicker-div"]//span[@class="ui-datepicker-month"]'
-        ))
+MONTH_HEADER = Target.the("Month Header").located_by(
+    By.xpath('//div[@id="ui-datepicker-div"]//span[@class="ui-datepicker-month"]')
+)
 
-YEAR_HEADER = Target.the(
-    f"year header").located_by((
-        By.XPATH,
-        '//div[@id="ui-datepicker-div"]//span[@class="ui-datepicker-year"]'
-        ))
+YEAR_HEADER = Target.the("Year Header").located_by(
+    By.xpath('//div[@id="ui-datepicker-div"]//span[@class="ui-datepicker-year"]')
+)
 
-PREV_MONTH = Target.the(
-    f"prev month").located_by((
-        By.XPATH,
-        '//a[@title="Prev"]'
-        ))
+PREV_MONTH = Target.the("Prev Month").located_by(By.xpath('//a[@title="Prev"]'))
 
-NEXT_MONTH = Target.the(
-    f"next month").located_by((
-        By.XPATH,
-        '//a[@title="Next"]'
-        ))
-# fmt: on
-# @formatter:on
+NEXT_MONTH = Target.the("Next Month").located_by(By.xpath('//a[@title="Next"]'))
+
 
 MONTH_MAP = {month: index for index, month in enumerate(calendar.month_name) if month}
 
@@ -122,10 +94,11 @@ MONTH_MAP = {month: index for index, month in enumerate(calendar.month_name) if 
 class GetToJiraClockify(Performable):
     @beat("[TASK] {} attempts to GetToJiraClockify")
     def perform_as(self, actor: Actor):
-        actor.attempts_to(Wait.for_the(CLOCKIFY_START_STOP_BUTTON).to_be_clickable())
-        actor.attempts_to(Eventually(Click(CLOCKIFY_START_STOP_BUTTON)))
-        actor.attempts_to(Eventually(SwitchTo.the(CLOCKIFY_TIMESHEET_FRAME)))
-        actor.attempts_to(Eventually(Click(CLOCKIFY_MANUAL_BUTTON)))
+        actor.will(Eventually(Click(DETAIL_SUMMARY_HEADER)))
+        actor.will(Click(CLOCKIFY_SUMMARY_HEADER))
+        actor.will(Wait.for_(CLOCKIFY_TIMESHEET_FRAME).to_appear())
+        actor.will(Eventually(SwitchTo.the(CLOCKIFY_TIMESHEET_FRAME)))
+        actor.will(Eventually(Click(CLOCKIFY_MANUAL_BUTTON)))
         actor.should(
             Eventually(
                 SeeAllOf(
@@ -144,27 +117,27 @@ class GetToJiraClockify(Performable):
 class LogTimeInJiraClockify(Performable):
     @beat("[TASK] {} attempts to LogTimeInJiraClockify")
     def perform_as(self, actor: Actor):
-        actor.attempts_to(ChooseDateFromPicker(self.date))
+        actor.will(ChooseDateFromPicker(self.date))
         hours_value = self._convert_timedelta(self.delta)
 
-        actor.attempts_to(
+        actor.will(
             Chain(
                 Click(FROM_TIME_FIELD),
                 Enter(self.starttime.strftime("%H%M")).into_the(FROM_TIME_FIELD),
             )
         )
-        actor.attempts_to(
+        actor.will(
             Chain(
                 Click(TIME_INPUT_FIELD),
                 Enter(hours_value).into_the(TIME_INPUT_FIELD),
             )
         )
-        actor.attempts_to(
+        actor.will(
             Click(PROJECT_DROPDOWN),
             Eventually(Click(self.project_option)),
         )
-        actor.attempts_to(Eventually(Click(ADD_TIME_BUTTON)))
-        actor.attempts_to(Eventually(See(Element(MESSAGE_MANUAL), IsClickable())))
+        actor.will(Eventually(Click(ADD_TIME_BUTTON)))
+        actor.will(Eventually(See(Element(MESSAGE_MANUAL), IsClickable())))
         return
 
     @staticmethod
@@ -181,7 +154,8 @@ class LogTimeInJiraClockify(Performable):
         return f"{hrs:02}{mins:02}{secs:02}"
 
     def __init__(
-        self, date: datetime, delta: timedelta, starttime: tdtime, project: Target):
+        self, date: datetime, delta: timedelta, starttime: tdtime, project: Target
+    ):
         self.date = date
         self.delta = delta
         self.starttime = starttime
@@ -193,24 +167,27 @@ class ChooseDateFromPicker(Performable):
     def perform_as(self, actor: Actor):
         dt = self.dt
 
-        actor.attempts_to(Eventually(Click(DATE_PICKER)))
+        actor.will(Eventually(Click(DATE_PICKER)))
         monthname = Text(MONTH_HEADER).answered_by(actor)
         yeartext = Text(YEAR_HEADER).answered_by(actor)
-        dt_target_rounded = datetime(dt.year, dt.month, 1, dt.hour, dt.minute, dt.second)
+        dt_target_rounded = datetime(
+            dt.year, dt.month, 1, dt.hour, dt.minute, dt.second
+        )
         picker_dt = parse(f"{monthname} 1 {yeartext}")
         d = relativedelta(dt_target_rounded, picker_dt)
         month_offset = d.months + (12 * d.years)
         button = PREV_MONTH if month_offset < 0 else NEXT_MONTH
         clicks = abs(month_offset)
 
-        for cnt in range(clicks):
-            actor.attempts_to(Eventually(Click(button)))
-            actor.attempts_to(Pause(0.35).seconds_because("javascript updating"))
+        for _cnt in range(clicks):
+            actor.will(Eventually(Click(button)))
+            actor.will(Pause(0.35).seconds_because("javascript updating"))
 
         monthname = Text(MONTH_HEADER).answered_by(actor)
         if MONTH_MAP[monthname] != dt.month:
             raise Exception(
-                f"logic error - should have gotten {dt.month}, got {MONTH_MAP[monthname]} instead."
+                f"logic error - should have gotten {dt.month}, "
+                f"got {MONTH_MAP[monthname]} instead."
             )
 
         # @formatter:off
@@ -223,7 +200,7 @@ class ChooseDateFromPicker(Performable):
         # fmt: on
         # @formatter:on
 
-        actor.attempts_to(Eventually(Click(DATE_BUTTON)))
+        actor.will(Eventually(Click(DATE_BUTTON)))
         actor.should(Eventually(See(Element(MONTH_HEADER), IsNot(Visible()))))
         return
 

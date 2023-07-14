@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-This script works on cloud based Jira projects which also utilize clockify.  This version
-currently assumes you login to Jira via google SSO. Other methods could be added.
+This script works on cloud based Jira projects which also utilize clockify.
+This version currently assumes you login to Jira via google SSO.
+Other methods could be added.
 
 It is meant to fill in the remaining time of a given day for a single ticket.
 
@@ -15,40 +16,37 @@ First Time Usage Example:
 
 Things you will need to run this script:
  - Your clockify API key
- - Your google user/pass and OTP secret.  (the value that you QR code scan to add 2FA on your phone)
+ - Your google user/pass and OTP secret.
+    (the value that you QR code scan to add 2FA on your phone)
 
-"""
+"""  # noqa: E501
 
 from __future__ import annotations
 
-import sys
 import argparse
 import calendar
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional
 
 import keyring
 import pytz
-from clockify_api_client.client import ClockifyAPIClient  # type: ignore
-from dateutil.parser import parse
-from dateutil.relativedelta import relativedelta
-from screenpy import Actor, settings
-from screenpy_pyotp.abilities import AuthenticateWith2FA
-from screenpy_selenium.abilities import BrowseTheWeb
-from screenpy_selenium import Target
-from selenium.webdriver.common.by import By
-
 from autofill_timetracking import readabledelta as rdd, selenium_module
 from autofill_timetracking.ability import Authenticate, ManageBrowserLocalStorage
 from autofill_timetracking.actions import (
     GetToJiraClockify,
-    LoginToJiraViaGoogle,
+    LoginToJira,
     LogTimeInJiraClockify,
 )
-
+from autofill_timetracking.by import By
 from autofill_timetracking.logger import create_logger, enable_logger
-from screenpy.narration.adapters.stdout_adapter import StdOutAdapter, StdOutManager
+from clockify_api_client.client import ClockifyAPIClient  # type: ignore
+from dateutil.parser import parse
+from dateutil.relativedelta import relativedelta
+from screenpy import Actor, settings
+from screenpy.narration.stdout_adapter import StdOutAdapter, StdOutManager
 from screenpy.pacing import the_narrator
+from screenpy_pyotp.abilities import AuthenticateWith2FA
+from screenpy_selenium import Target
+from screenpy_selenium.abilities import BrowseTheWeb
 
 # uncomment to use our own logger that handles file & line better
 logger = create_logger("screenpy2")
@@ -60,15 +58,15 @@ MONTH_MAP = {month: index for index, month in enumerate(calendar.month_name) if 
 FMT = "%Y-%m-%dT%H:%M:%SZ"
 KEY = "autofill_script"
 Namespace = argparse.Namespace
-T_default = Optional[str]
+T_default = str | None
 
 
 def setup_selenium():
     settings.TIMEOUT = 60
-    browser = "Firefox"
+    browser = "Chrome"
     headless = False
     driver = selenium_module.Selenium.create_driver(browser, headless)
-    driver.set_window_size(1280, 960)
+    driver.set_window_size(1600, 1080)
     driver.set_window_position(0, 0)
     return driver
 
@@ -84,11 +82,11 @@ def get_hours_total_for_day(cclient: ClockifyAPIClient, dt: datetime) -> timedel
     user = cclient.users.get_current_user()
     workspaceid = user["defaultWorkspace"]
     userid = user["id"]
-    time_entries: List[Dict] = cclient.time_entries.get_time_entries(
+    time_entries: list[dict] = cclient.time_entries.get_time_entries(
         workspaceid, userid, params=params
     )
 
-    def get_total_hours(time_entries: List[Dict]) -> timedelta:
+    def get_total_hours(time_entries: list[dict]) -> timedelta:
         total = timedelta()
         for time_entry in time_entries:
             times = time_entry["timeInterval"]
@@ -114,7 +112,7 @@ def convert_timedelta(td: timedelta) -> str:
 
 
 ################################################################################
-def in_keychain(keyname: Optional[str]):
+def in_keychain(keyname: str | None) -> str:
     return f"{'in keychain' if keyname else 'NOT IN KEYCHAIN'}"
 
 
@@ -123,14 +121,16 @@ def set_keychain(
     default: T_default,
     value: str,
     key: str,
-    keyname: str = None,
+    keyname: str | None = None,
 ):
     keyname = keyname or key
     if (default is None or default != value) and key in args:
         keyring.set_password(KEY, keyname, f"{value}")
 
 
-def get_args_val(args: Namespace, default: T_default, key: str, keyname: str = None) -> str:
+def get_args_val(
+    args: Namespace, default: T_default, key: str, keyname: str | None = None
+) -> str:
     keyname = keyname or key
     if default is None and key not in args:
         raise ValueError(f"Could not find {KEY}:{keyname} in keychain")
@@ -138,7 +138,9 @@ def get_args_val(args: Namespace, default: T_default, key: str, keyname: str = N
     return value
 
 
-def get_keychain_val(args: Namespace, default: T_default, key: str, keyname: str = None) -> str:
+def get_keychain_val(
+    args: Namespace, default: T_default, key: str, keyname: str | None = None
+) -> str:
     keyname = keyname or key
     value = get_args_val(args, default, key, keyname)
     set_keychain(args, default, value, key, keyname)
@@ -152,17 +154,21 @@ if __name__ == "__main__":
     keys.
     It's possible for more than one user to run this script on the same machine.  Each
     user's values are stored seperately in the keychain.
-    
+
     To update the project in keychain
     update_jira_timetracking.py -P PROJECT_NAME YYYY-MM-DD YYYY-MM-DD
-    
+
     update password in keychain
     update_jira_timetracking.py -p password YYYY-MM-DD YYYY-MM-DD
-    
+
     update api key in keychain
     update_jira_timetracking.py -A APIKEY YYYY-MM-DD YYYY-MM-DD
-    
-    
+
+
+    When your gmail password changes, you'll need to update the password stored in the
+    keychain.  Simply adding the parameter and the password to the commandline
+    will do this
+
     """
     parser1 = argparse.ArgumentParser(add_help=False)
 
@@ -211,7 +217,7 @@ if __name__ == "__main__":
     username = get_args_val(args1, default_user, USERNAME, keyname_user)
 
     keyname_pass = username
-    keyname_otp = f"otp_{username}"
+    keyname_otp = f"otp_jc_{username}"
     keyname_api = f"clockify_api_key_{username}"
 
     default_pass = keyring.get_password(KEY, keyname_pass)
@@ -222,7 +228,7 @@ if __name__ == "__main__":
         dest=DATE,
         metavar="YYYY-MM-DD",
         nargs="*",
-        help=f"(required) date in format YYYY-MM-DD. Two dates will produce a range.",
+        help="(required) date in format YYYY-MM-DD. Two dates will produce a range.",
     )
 
     parser2.add_argument(
@@ -315,20 +321,21 @@ if __name__ == "__main__":
 
     if len(dates) == 2:
         end = tzone.localize(parse(dates[1]))
+        if end < start:
+            raise ValueError("End date must come after start")
+        if start == end:
+            end = start + relativedelta(days=1)
     elif len(dates) == 1:
         end = start + relativedelta(days=1)
     else:
         raise Exception("unhandled condition")
 
-    # @formatter:off
-    # fmt: off
-    PROJECT_OPTION = Target.the(
-        f"project option").located_by((
-            By.XPATH,
-            f'//*[@id="select2-projectSelectManual-results"]//li[string() = "{project}"]'
-            ))
-    # fmt: on
-    # @formatter:on
+    PROJECT_OPTION = Target.the("project option").located_by(
+        By.xpath(
+            f'//*[@id="select2-projectSelectManual-results"]'
+            f'//li[string() = "{project}"]'
+        )
+    )
 
     ################################################################################
     client = ClockifyAPIClient().build(api, "api.clockify.me/v1")
@@ -359,7 +366,7 @@ if __name__ == "__main__":
                 AuthenticateWith2FA.using_secret(otp),
             )
 
-            actor.attempts_to(LoginToJiraViaGoogle(url))
+            actor.attempts_to(LoginToJira(url))
             actor.attempts_to(GetToJiraClockify())
             runonce = False
 

@@ -1,3 +1,4 @@
+# noqa: E501
 """
 Original inspiration from
 https://github.com/wimglenn/readabledelta/blob/master/readabledelta.py
@@ -7,9 +8,12 @@ from __future__ import annotations
 
 import warnings
 from datetime import datetime, timedelta
-from typing import Dict, Sequence, Type, TypeVar
+from typing import TYPE_CHECKING, TypeVar
 
 from dateutil.relativedelta import relativedelta
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 NORMAL = 0
 SHORT = 1
@@ -26,21 +30,37 @@ MILLISECONDS = "milliseconds"
 MICROSECONDS = "microseconds"
 
 
-# @formatter:off
-# fmt: off
-TIME_UNITS: Dict[str, Dict[str, str]] = {
-    MICROSECONDS: dict(plural='microseconds', singular='microsecond', abbrev='µs', short='µsecs'),
-    MILLISECONDS: dict(plural='milliseconds', singular='millisecond', abbrev='ms', short='msecs'),
-    SECONDS     : dict(plural='seconds',      singular='second',      abbrev='s',  short='secs'),
-    MINUTES     : dict(plural='minutes',      singular='minute',      abbrev='m',  short='mins'),
-    HOURS       : dict(plural='hours',        singular='hour',        abbrev='h',  short='hrs'),
-    DAYS        : dict(plural='days',         singular='day',         abbrev='D',  short='days'),
-    WEEKS       : dict(plural='weeks',        singular='week',        abbrev='W',  short='wks'),
-    MONTHS      : dict(plural='months',       singular='month',       abbrev='M',  short='mnths'),
-    YEARS       : dict(plural='years',        singular='year',        abbrev='Y',  short='yrs'),
-            }
-# fmt: on
-# @formatter:on
+TIME_UNITS: dict[str, dict[str, str]] = {
+    MICROSECONDS: {
+        "plural": "microseconds",
+        "singular": "microsecond",
+        "abbrev": "µs",
+        "short": "µsecs",
+    },
+    MILLISECONDS: {
+        "plural": "milliseconds",
+        "singular": "millisecond",
+        "abbrev": "ms",
+        "short": "msecs",
+    },
+    SECONDS: {
+        "plural": "seconds",
+        "singular": "second",
+        "abbrev": "s",
+        "short": "secs",
+    },
+    MINUTES: {
+        "plural": "minutes",
+        "singular": "minute",
+        "abbrev": "m",
+        "short": "mins",
+    },
+    HOURS: {"plural": "hours", "singular": "hour", "abbrev": "h", "short": "hrs"},
+    DAYS: {"plural": "days", "singular": "day", "abbrev": "D", "short": "days"},
+    WEEKS: {"plural": "weeks", "singular": "week", "abbrev": "W", "short": "wks"},
+    MONTHS: {"plural": "months", "singular": "month", "abbrev": "M", "short": "mnths"},
+    YEARS: {"plural": "years", "singular": "year", "abbrev": "Y", "short": "yrs"},
+}
 
 __version__ = "0.2.0"
 TIMEDELTA_ALLOWED_UNITS = (
@@ -71,7 +91,7 @@ class ReadableDelta(timedelta):
     Human readable version of timedelta
     """
 
-    def __new__(cls: Type[T], *args, **kwargs) -> T:
+    def __new__(cls: type[T], *args, **kwargs) -> T:
         years = kwargs.pop(YEARS, 0)
         if DAYS in kwargs:
             kwargs[DAYS] += 365 * years
@@ -83,7 +103,7 @@ class ReadableDelta(timedelta):
         return self
 
     @classmethod
-    def from_timedelta(cls: Type[T], dt: timedelta) -> T:
+    def from_timedelta(cls: type[T], dt: timedelta) -> T:
         return cls(days=dt.days, seconds=dt.seconds, microseconds=dt.microseconds)
 
     def __unicode__(self):
@@ -96,7 +116,9 @@ T = TypeVar("T", bound=ReadableDelta)
 
 
 ################################################################################
-def normalize_timedelta_units(delta: timedelta, units: Sequence[str] = None) -> Dict[str, int]:
+def normalize_timedelta_units(
+    delta: timedelta, units: Sequence[str] | None = None
+) -> dict[str, int]:
     """
     :param units: array of time magnitudes to be used for output
     """
@@ -157,7 +179,9 @@ def normalize_timedelta_units(delta: timedelta, units: Sequence[str] = None) -> 
 
 
 ################################################################################
-def normalize_relativedelta_units(delta: relativedelta, units: Sequence[str] = None):
+def normalize_relativedelta_units(
+    delta: relativedelta, units: Sequence[str] | None = None
+):
     """
     :param units: array of time magnitudes to be used for output
     """
@@ -192,7 +216,9 @@ def normalize_relativedelta_units(delta: relativedelta, units: Sequence[str] = N
     # it's impossible to filter out months because there is no way to
     # convert them to smaller units without the relative dates.
     if MONTHS not in units and months:
-        warnings.warn("Cannot reduce months down to smaller units", Warning)
+        warnings.warn(
+            "Cannot reduce months down to smaller units", Warning, stacklevel=1
+        )
         # raise ValueError("Cannot reduce months down to smaller units")
     data[MONTHS] = months
 
@@ -242,7 +268,7 @@ def to_string(
     delta: timedelta,
     style: int = NORMAL,
     include_sign: bool = True,
-    units: Sequence[str] = None,
+    units: Sequence[str] | None = None,
     showzero: bool = False,
 ) -> str:
     """
@@ -306,7 +332,7 @@ def to_string(
 
 
 ################################################################################
-def extract_units(delta: timedelta, keys: Sequence[str] = None):
+def extract_units(delta: timedelta, keys: Sequence[str] | None = None):
     """
     Given a timedelta, determine all the time magnitudes within said delta.
     """
@@ -325,7 +351,7 @@ def from_relativedelta(
     rdelta: relativedelta,
     style: int = NORMAL,
     include_sign: bool = True,
-    units: Sequence[str] = None,
+    units: Sequence[str] | None = None,
     showzero: bool = False,
 ) -> str:
     negative = is_negative_relativedelta(rdelta)

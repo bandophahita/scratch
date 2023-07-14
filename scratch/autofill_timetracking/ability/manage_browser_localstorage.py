@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-from typing import Union
+from typing import TYPE_CHECKING
 
-from screenpy import Actor
 from screenpy.protocols import Forgettable
 from selenium.webdriver import Chrome, Firefox, Safari
-from selenium.webdriver.remote.webdriver import WebDriver
+
+if TYPE_CHECKING:
+    from screenpy import Actor
+    from selenium.webdriver.remote.webdriver import WebDriver
 
 
 class ManageBrowserLocalStorage(Forgettable):
@@ -86,7 +88,7 @@ class LocalStorage:
     # python API doesn't provide a way to access the local storage.
     # But selenium does.
 
-    def __init__(self, driver: Union[WebDriver]):
+    def __init__(self, driver: WebDriver):
         self.driver = driver
 
     def __len__(self):

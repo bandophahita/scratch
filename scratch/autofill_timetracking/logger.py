@@ -1,14 +1,12 @@
-
 from __future__ import annotations
-import logging
-from typing import Type, Optional, Tuple
+
 import inspect
-import traceback
-import sys
+import logging
 import os
+import sys
+import traceback
 
-
-__logger: Type[logging.Logger] = logging.getLoggerClass()
+__logger: type[logging.Logger] = logging.getLoggerClass()
 
 
 ALL = logging.CRITICAL * 10  # 500 #IO  # Trace.always
@@ -96,7 +94,6 @@ class ScreenpyLogger(__logger):  # type: ignore
     def debug(self, msg: str, *args, **kwargs):
         self.__log(DEBUG, msg, *args, **kwargs)
 
-    #
     def info(self, msg: str, *args, **kwargs):
         self.__log(INFO, msg, *args, **kwargs)
 
@@ -107,8 +104,8 @@ class ScreenpyLogger(__logger):  # type: ignore
 
     @staticmethod
     def _find_first_non_library_stack_frame_info(
-            hint: int = 0,
-    ) -> Tuple[Optional[str], Optional[int]]:
+        hint: int = 0,
+    ) -> tuple[str | None, int | None]:
         libs = [
             # 'trace.py',
             # '__init__.py',
@@ -126,7 +123,7 @@ class ScreenpyLogger(__logger):  # type: ignore
             "base_matcher.py",
             "assert_that.py",
         ]
-        rt: Tuple[Optional[str], Optional[int]] = (None, None)
+        rt: tuple[str | None, int | None] = (None, None)
         stack = inspect.stack()
         for i in range(hint, len(stack)):
             info = inspect.getframeinfo(stack[i][0])
@@ -139,7 +136,7 @@ class ScreenpyLogger(__logger):  # type: ignore
 
 def create_logger(name: str) -> ScreenpyLogger:
     logging.setLoggerClass(ScreenpyLogger)
-    # pycharm gets confused about getLogger returning ScreenpyLogger. Disabling the inspection error
+    # pycharm gets confused about getLogger returning ScreenpyLogger
     # mypy also doesn't understand this since it is a dynamic call.
     # noinspection PyTypeChecker
     logger: ScreenpyLogger = logging.getLogger(name)  # type: ignore
@@ -149,14 +146,18 @@ def create_logger(name: str) -> ScreenpyLogger:
     return logger
 
 
-def enable_logger(logger: ScreenpyLogger, level: int = ScreenpyLogger.DEBUG, fmt: logging.Formatter = None):
+def enable_logger(
+    logger: ScreenpyLogger,
+    level: int = ScreenpyLogger.DEBUG,
+    fmt: logging.Formatter | None = None,
+):
     """DO NOT USE THIS FUNCTION WHEN USING automation.trace."""
     if fmt is None:
         # fmtstr = '{asctime} {filename}:{lineno} {levelname:>8} [{name}] {msg} '
         # fmtstr = '{asctime} {filename}:{lineno:<4} {levelname:>8} {msg} '
         # fmtstr = '{asctime} {levelname:>8} {msg} '
-        fmtstr = '{asctime} {msg} '
-        fmt = logging.Formatter(fmtstr, datefmt="%H:%M:%S", style='{')
+        fmtstr = "{asctime} {msg} "
+        fmt = logging.Formatter(fmtstr, datefmt="%H:%M:%S", style="{")
 
     logger.setLevel(level)
     ch = logging.StreamHandler(sys.__stdout__)

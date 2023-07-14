@@ -3,13 +3,17 @@ Enter a 2-factor authentication code into a text field.
 """
 from __future__ import annotations
 
-from screenpy.actor import Actor
+from typing import TYPE_CHECKING
+
 from screenpy.pacing import beat
-from screenpy_selenium import Target
 from screenpy_selenium.actions import Enter
-from selenium.webdriver.common.action_chains import ActionChains
 
 from ..ability import Authenticate
+
+if TYPE_CHECKING:
+    from screenpy.actor import Actor
+    from screenpy_selenium import Target
+    from selenium.webdriver.common.action_chains import ActionChains
 
 
 class EnterUsername:

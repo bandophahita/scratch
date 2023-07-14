@@ -1,9 +1,13 @@
-"""This module need to be imported before any of the other selenium modules to work proper"""
+# ruff: noqa: E501
+"""
+This module need to be imported before any of the other selenium modules to work proper
+"""
+import contextlib
 import sys
-from typing import Union
+from collections.abc import Iterable
 
 
-def uncache(exclude):
+def uncache(exclude: Iterable[str]) -> None:
     """Remove package modules from cache except excluded ones.
     On next import they will be reloaded.
 
@@ -33,10 +37,13 @@ def uncache(exclude):
         del sys.modules[mod]
 
 
-def monkeypatch():
+def monkeypatch() -> None:
     import selenium.common.exceptions
 
-    def __str_replacement__(self):
+    def __str_replacement__(
+        self: selenium.common.exceptions.WebDriverException
+        | selenium.common.exceptions.UnexpectedAlertPresentException,
+    ) -> str:
         """Hack to fix extra newline at the end of exceptions"""
         exception_msg = f"{self.__class__.__name__}: {self.msg}"
         if self.screen:
@@ -50,25 +57,24 @@ def monkeypatch():
 
     uncache(["selenium.common.exceptions"])
 
-    selenium.common.exceptions.WebDriverException.__str__ = __str_replacement__
-    selenium.common.exceptions.UnexpectedAlertPresentException.__str__ = (
+    selenium.common.exceptions.WebDriverException.__str__ = __str_replacement__  # type: ignore[method-assign]
+    selenium.common.exceptions.UnexpectedAlertPresentException.__str__ = (  # type: ignore[method-assign]
         __str_replacement__
     )
 
     from selenium import webdriver
 
     def __del_replacement__(
-        self: Union[webdriver.Firefox, webdriver.Chrome, webdriver.Edge]
-    ):
+        self: webdriver.Firefox | webdriver.Chrome | webdriver.Edge,
+    ) -> None:
         """Hack to force firefox (and any other drivers) to quit when closing scope"""
-        try:
+        with contextlib.suppress(Exception):
             self.quit()
-        except Exception as exc:
-            pass
+        super().__del__()  # type: ignore[misc]
 
-    webdriver.Firefox.__del__ = __del_replacement__
-    webdriver.Chrome.__del__ = __del_replacement__
-    webdriver.Edge.__del__ = __del_replacement__
+    webdriver.Firefox.__del__ = __del_replacement__  # type: ignore[attr-defined]
+    webdriver.Chrome.__del__ = __del_replacement__  # type: ignore[attr-defined]
+    webdriver.Edge.__del__ = __del_replacement__  # type: ignore[attr-defined]
 
 
-monkeypatch()
+
