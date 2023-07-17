@@ -70,7 +70,6 @@ def monkeypatch() -> None:
         """Hack to force firefox (and any other drivers) to quit when closing scope"""
         with contextlib.suppress(Exception):
             self.quit()
-        super().__del__()  # type: ignore[misc]
 
     webdriver.Firefox.__del__ = __del_replacement__  # type: ignore[attr-defined]
     webdriver.Chrome.__del__ = __del_replacement__  # type: ignore[attr-defined]
