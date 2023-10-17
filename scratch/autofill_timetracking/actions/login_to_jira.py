@@ -88,8 +88,8 @@ class LoginToJiraViaGoogle(Performable):
                 )
             )
         )
-
-        if Element(TRY_ANOTHER_WAY_BUTTON).answered_by(actor):
+        
+        if not Element(TOTP_PIN_FIELD).answered_by(actor):
             actor.should(Eventually(Click(TRY_ANOTHER_WAY_BUTTON)))
             actor.should(Eventually(Click(CODE_FROM_AUTHENTICATOR_BUTTON)))
 

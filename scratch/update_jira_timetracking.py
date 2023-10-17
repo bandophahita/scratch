@@ -29,13 +29,12 @@ from datetime import datetime, timedelta
 
 import keyring
 import pytz
-from autofill_timetracking import readabledelta as rdd, selenium_module
-from autofill_timetracking.ability import Authenticate, ManageBrowserLocalStorage
-from autofill_timetracking.actions import (
-    GetToJiraClockify,
-    LoginToJira,
-    LogTimeInJiraClockify,
-)
+from autofill_timetracking import readabledelta as rdd
+from autofill_timetracking.ability import (Authenticate,
+                                           ManageBrowserLocalStorage)
+from autofill_timetracking.actions import (GetToJiraClockify, LoginToJira,
+                                           LoginToJiraViaGoogle,
+                                           LogTimeInJiraClockify)
 from autofill_timetracking.by import By
 from autofill_timetracking.logger import create_logger, enable_logger
 from clockify_api_client.client import ClockifyAPIClient  # type: ignore
@@ -47,10 +46,12 @@ from screenpy.pacing import the_narrator
 from screenpy_pyotp.abilities import AuthenticateWith2FA
 from screenpy_selenium import Target
 from screenpy_selenium.abilities import BrowseTheWeb
+from setup_selenium import Browser, SetupSelenium, set_logger
 
 # uncomment to use our own logger that handles file & line better
 logger = create_logger("screenpy2")
 the_narrator.adapters = [StdOutAdapter(StdOutManager(logger))]
+set_logger(logger)
 enable_logger(logger)
 
 
@@ -62,10 +63,10 @@ T_default = str | None
 
 
 def setup_selenium():
-    settings.TIMEOUT = 60
-    browser = "Chrome"
+    settings.TIMEOUT = 30
+    browser = Browser.CHROME
     headless = False
-    driver = selenium_module.Selenium.create_driver(browser, headless)
+    driver = SetupSelenium.create_driver(browser, headless)
     driver.set_window_size(1600, 1080)
     driver.set_window_position(0, 0)
     return driver
@@ -217,7 +218,8 @@ if __name__ == "__main__":
     username = get_args_val(args1, default_user, USERNAME, keyname_user)
 
     keyname_pass = username
-    keyname_otp = f"otp_jc_{username}"
+    # keyname_otp = f"otp_jc_{username}"
+    keyname_otp = f"otp_{username}"
     keyname_api = f"clockify_api_key_{username}"
 
     default_pass = keyring.get_password(KEY, keyname_pass)
@@ -366,7 +368,7 @@ if __name__ == "__main__":
                 AuthenticateWith2FA.using_secret(otp),
             )
 
-            actor.attempts_to(LoginToJira(url))
+            actor.attempts_to(LoginToJiraViaGoogle(url))
             actor.attempts_to(GetToJiraClockify())
             runonce = False
 
