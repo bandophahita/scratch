@@ -66,6 +66,7 @@ T_default = str | None
 
 def setup_selenium():
     settings.TIMEOUT = 30
+    settings.UNABRIDGED_NARRATION = False
     browser = Browser.CHROME
     headless = False
     driver = SetupSelenium.create_driver(browser, headless)

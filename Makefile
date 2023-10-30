@@ -4,9 +4,10 @@ requirements:
 sync:
 	poetry install --with dev --sync
 
-poetryupdate:
-	poetry update --with dev
+update_lock_only:
+	poetry update --lock
 
-update: poetryupdate requirements
+update: update_lock_only 
+	poetry install --with dev
 
-.PHONY: requirements sync poetryupdate update
+.PHONY: requirements sync update update_lock_only
