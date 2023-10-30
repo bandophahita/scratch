@@ -30,11 +30,13 @@ from datetime import datetime, timedelta
 import keyring
 import pytz
 from autofill_timetracking import readabledelta as rdd
-from autofill_timetracking.ability import (Authenticate,
-                                           ManageBrowserLocalStorage)
-from autofill_timetracking.actions import (GetToJiraClockify, LoginToJira,
-                                           LoginToJiraViaGoogle,
-                                           LogTimeInJiraClockify)
+from autofill_timetracking.ability import Authenticate, ManageBrowserLocalStorage
+from autofill_timetracking.actions import (
+    GetToJiraClockify,
+    LoginToJiraViaJumpCloud,
+    LoginToJiraViaGoogle,
+    LogTimeInJiraClockify,
+)
 from autofill_timetracking.by import By
 from autofill_timetracking.logger import create_logger, enable_logger
 from clockify_api_client.client import ClockifyAPIClient  # type: ignore
@@ -218,8 +220,8 @@ if __name__ == "__main__":
     username = get_args_val(args1, default_user, USERNAME, keyname_user)
 
     keyname_pass = username
-    # keyname_otp = f"otp_jc_{username}"
-    keyname_otp = f"otp_{username}"
+    keyname_otp = f"otp_jc_{username}"
+    # keyname_otp = f"otp_{username}"
     keyname_api = f"clockify_api_key_{username}"
 
     default_pass = keyring.get_password(KEY, keyname_pass)
@@ -368,7 +370,7 @@ if __name__ == "__main__":
                 AuthenticateWith2FA.using_secret(otp),
             )
 
-            actor.attempts_to(LoginToJiraViaGoogle(url))
+            actor.attempts_to(LoginToJiraViaJumpCloud(url))
             actor.attempts_to(GetToJiraClockify())
             runonce = False
 

@@ -88,7 +88,7 @@ class LoginToJiraViaGoogle(Performable):
                 )
             )
         )
-        
+
         if not Element(TOTP_PIN_FIELD).answered_by(actor):
             actor.should(Eventually(Click(TRY_ANOTHER_WAY_BUTTON)))
             actor.should(Eventually(Click(CODE_FROM_AUTHENTICATOR_BUTTON)))
@@ -107,8 +107,8 @@ class LoginToJiraViaGoogle(Performable):
         self.url = url
 
 
-class LoginToJira(Performable):
-    @beat("[TASK] {} attempts to LoginToJira")
+class LoginToJiraViaJumpCloud(Performable):
+    @beat("[TASK] {} attempts to LoginToJiraViaJumpCloud")
     def perform_as(self, actor: Actor) -> None:
         actor.will(Open(self.url))
         # clockify username
