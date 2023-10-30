@@ -34,7 +34,6 @@ from autofill_timetracking.ability import Authenticate, ManageBrowserLocalStorag
 from autofill_timetracking.actions import (
     GetToJiraClockify,
     LoginToJiraViaJumpCloud,
-    LoginToJiraViaGoogle,
     LogTimeInJiraClockify,
 )
 from autofill_timetracking.by import By

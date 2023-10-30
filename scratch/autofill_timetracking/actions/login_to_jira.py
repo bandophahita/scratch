@@ -125,7 +125,14 @@ class LoginToJiraViaJumpCloud(Performable):
 
         token = actor.uses_ability_to(AuthenticateWith2FA).to_get_token()
 
-        t1, t2, t3, t4, t5, t6 = token
+        # t1, t2, t3, t4, t5, t6 = token
+        t1 = token[0]
+        t2 = token[1]
+        t3 = token[2]
+        t4 = token[3]
+        t5 = token[4]
+        t6 = token[5]
+        
         actor.will(Wait.for_(TOKEN_1).to_appear())
         actor.will(Enter(t1).into(TOKEN_1))
         actor.will(Enter(t2).into(TOKEN_2))
