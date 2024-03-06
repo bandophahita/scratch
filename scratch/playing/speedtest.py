@@ -58,9 +58,15 @@ def time_all():
 # depth_2 = 0
 import random
 import bisect
-a = list(range(10000))
+n = 10000
+a = list(range(n))
+c = list(range(n))
 random.shuffle(a)
-
+random.shuffle(c)
+d = []
+for i,x in enumerate(a):
+    y = c[i]
+    d.append((x,y))
 
 
 
@@ -68,15 +74,15 @@ random.shuffle(a)
 @Benchmark
 def do_append_sort():
     b = []
-    for i in a:
+    for i in d:
         b.append(i)
-        b.sort()
+        b.sort(key=lambda i: i[0])
 
 @Benchmark
 def do_bisect():
     b = []
-    for i in a:
-        bisect.insort(b, i)
+    for i in d:
+        bisect.insort(b, i, key=lambda i: i[0])
 
 
 
