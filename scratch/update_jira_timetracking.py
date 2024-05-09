@@ -26,15 +26,15 @@ from __future__ import annotations
 import argparse
 import calendar
 from datetime import datetime, timedelta
+from typing import TYPE_CHECKING
 
 import keyring
 import pytz
-from autofill_timetracking import readabledelta as rdd
 from autofill_timetracking.ability import Authenticate, ManageBrowserLocalStorage
 from autofill_timetracking.actions import (
     GetToJiraClockify,
     LoginToJiraViaJumpCloud,
-    LogTimeInJiraClockify,
+    LogTime,
 )
 from autofill_timetracking.by import By
 from autofill_timetracking.logger import create_logger, enable_logger
@@ -48,6 +48,9 @@ from screenpy_pyotp.abilities import AuthenticateWith2FA
 from screenpy_selenium import Target
 from screenpy_selenium.abilities import BrowseTheWeb
 from setup_selenium import Browser, SetupSelenium, set_logger
+
+if TYPE_CHECKING:
+    from selenium.webdriver.remote.webdriver import WebDriver
 
 # uncomment to use our own logger that handles file & line better
 logger = create_logger("screenpy2")
@@ -63,7 +66,7 @@ Namespace = argparse.Namespace
 T_default = str | None
 
 
-def setup_selenium():
+def setup_selenium() -> WebDriver:
     settings.TIMEOUT = 30
     settings.UNABRIDGED_NARRATION = False
     browser = Browser.CHROME
@@ -101,19 +104,6 @@ def get_hours_total_for_day(cclient: ClockifyAPIClient, dt: datetime) -> timedel
     return get_total_hours(time_entries)
 
 
-def convert_timedelta(td: timedelta) -> str:
-    """clockify needs the format to be HHMMSS"""
-    data = rdd.normalize_timedelta_units(
-        td, units=[rdd.HOURS, rdd.MINUTES, rdd.SECONDS]
-    )
-    hrs = data[rdd.HOURS]
-    if hrs > 24:
-        raise ValueError("We should not be adding more than 24 hours")
-    mins = data[rdd.MINUTES]
-    secs = data[rdd.SECONDS]
-    return f"{hrs:02}{mins:02}{secs:02}"
-
-
 ################################################################################
 def in_keychain(keyname: str | None) -> str:
     return f"{'in keychain' if keyname else 'NOT IN KEYCHAIN'}"
@@ -137,8 +127,7 @@ def get_args_val(
     keyname = keyname or key
     if default is None and key not in args:
         raise ValueError(f"Could not find {KEY}:{keyname} in keychain")
-    value = getattr(args, key) if key in args else default
-    return value
+    return getattr(args, key) if key in args else default
 
 
 def get_keychain_val(
@@ -348,8 +337,19 @@ if __name__ == "__main__":
 
     day = start
     runonce = True
+
+    def setup_actor(actor: Actor) -> None:
+        driver = setup_selenium()
+        actor.who_can(
+            BrowseTheWeb.using(driver),
+            Authenticate.with_user_pass(username, password),
+            ManageBrowserLocalStorage.using(driver),
+            AuthenticateWith2FA.using_secret(otp),
+        )
+
     ################################################################################
-    while day < end:
+
+    while day <= end:
         # skip weekends
         if day.weekday() >= 5:
             day += relativedelta(days=1)
@@ -357,24 +357,15 @@ if __name__ == "__main__":
 
         total_hours = get_hours_total_for_day(client, day)
         needed_hours = timedelta(hours=hours) - total_hours
-        if not needed_hours:
-            day += relativedelta(days=1)
-            continue
+        if needed_hours > timedelta(0):
+            # needed_hours += timedelta(hours=1)
+            if runonce:
+                setup_actor(actor)
 
-        if runonce:
-            driver = setup_selenium()
-            actor.who_can(
-                BrowseTheWeb.using(driver),
-                Authenticate.with_user_pass(username, password),
-                ManageBrowserLocalStorage.using(driver),
-                AuthenticateWith2FA.using_secret(otp),
-            )
+                actor.will(LoginToJiraViaJumpCloud(url))
+                actor.will(GetToJiraClockify())
+                runonce = False
 
-            actor.attempts_to(LoginToJiraViaJumpCloud(url))
-            actor.attempts_to(GetToJiraClockify())
-            runonce = False
+            actor.will(LogTime(day, needed_hours, start_time, PROJECT_OPTION))
 
-        actor.attempts_to(
-            LogTimeInJiraClockify(day, needed_hours, start_time, PROJECT_OPTION)
-        )
         day += relativedelta(days=1)

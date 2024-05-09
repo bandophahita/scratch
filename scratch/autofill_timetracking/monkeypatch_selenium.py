@@ -8,7 +8,8 @@ from collections.abc import Iterable
 
 
 def uncache(exclude: Iterable[str]) -> None:
-    """Remove package modules from cache except excluded ones.
+    """
+    Remove package modules from cache except excluded ones.
     On next import they will be reloaded.
 
     Args:

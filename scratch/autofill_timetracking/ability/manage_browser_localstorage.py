@@ -2,10 +2,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from screenpy.protocols import Forgettable
+from screenpy import Forgettable
 from selenium.webdriver import Chrome, Firefox, Safari
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
+
     from screenpy import Actor
     from selenium.webdriver.remote.webdriver import WebDriver
 
@@ -22,7 +24,7 @@ class ManageBrowserLocalStorage(Forgettable):
         Perry = AnActor.named("Perry").who_can(ManageTheBrowser.using(driver))
     """
 
-    def forget(self):
+    def forget(self) -> None:
         self.driver.quit()
 
     @staticmethod
@@ -45,33 +47,33 @@ class ManageBrowserLocalStorage(Forgettable):
         """Create and use a default Safari Selenium webdriver instance."""
         return ManageBrowserLocalStorage.using(Safari())
 
-    def clear_all_cache(self):
+    def clear_all_cache(self) -> None:
         self.localstorage.clear()
 
     clear_cache = to_clear_cache = to_clear_all_cache = clear_all_cache
 
-    def get_item(self, key: str):
+    def get_item(self, key: str) -> str | None:
         return self.localstorage.get(key)
 
     to_get_item = get_item
 
-    def remove_item(self, key: str):
+    def remove_item(self, key: str) -> None:
         self.localstorage.remove(key)
 
     to_remove_item = remove_item
 
-    def get_all_items(self):
+    def get_all_items(self) -> list[str] | None:
         return self.localstorage.items()
 
     to_get_all_items = get_all_items
 
-    def get_all_keys(self):
+    def get_all_keys(self) -> list[str] | None:
         return self.localstorage.keys()
 
     to_get_all_keys = get_all_keys
 
     @staticmethod
-    def as_(actor: Actor):
+    def as_(actor: Actor) -> ManageBrowserLocalStorage:
         return actor.ability_to(ManageBrowserLocalStorage)
 
     def __repr__(self) -> str:
@@ -88,15 +90,15 @@ class LocalStorage:
     # python API doesn't provide a way to access the local storage.
     # But selenium does.
 
-    def __init__(self, driver: WebDriver):
+    def __init__(self, driver: WebDriver) -> None:
         self.driver = driver
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.driver.execute_script("return window.localStorage.length;")
 
-    def items(self):
-        if self.__on_data():
-            return
+    def items(self) -> list[str]:
+        if self.__on_blank():
+            return []
         return self.driver.execute_script(
             "var ls = window.localStorage, items = {}; "
             "for (var i = 0, k; i < ls.length; ++i) "
@@ -104,9 +106,9 @@ class LocalStorage:
             "return items; "
         )
 
-    def keys(self):
-        if self.__on_data():
-            return
+    def keys(self) -> list[str]:
+        if self.__on_blank():
+            return []
         return self.driver.execute_script(
             "var ls = window.localStorage, keys = []; "
             "for (var i = 0; i < ls.length; ++i) "
@@ -114,50 +116,50 @@ class LocalStorage:
             "return keys; "
         )
 
-    def get(self, key):
-        if self.__on_data():
-            return
+    def get(self, key: str) -> str | None:
+        if self.__on_blank():
+            return None
         return self.driver.execute_script(
             "return window.localStorage.getItem(arguments[0]);", key
         )
 
-    def set(self, key, value):
-        if self.__on_data():
+    def set(self, key: str, value: str) -> None:  # noqa: A003
+        if self.__on_blank():
             return
         self.driver.execute_script(
             "window.localStorage.setItem(arguments[0], arguments[1]);", key, value
         )
 
-    def has(self, key):
+    def has(self, key: str) -> bool:
         return key in self.keys()
 
-    def remove(self, key):
-        if self.__on_data():
+    def remove(self, key: str) -> None:
+        if self.__on_blank():
             return
         self.driver.execute_script("window.localStorage.removeItem(arguments[0]);", key)
 
-    def clear(self):
-        if self.__on_data():
+    def clear(self) -> None:
+        if self.__on_blank():
             return
         self.driver.execute_script("window.localStorage.clear();")
 
-    def __on_data(self):
-        return self.driver.current_url == "data:,"
+    def __on_blank(self) -> bool:
+        return self.driver.current_url in ["about:blank", "data:,"]
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> str:
         value = self.get(key)
         if value is None:
             raise KeyError(key)
         return value
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: str) -> None:
         self.set(key, value)
 
-    def __contains__(self, key):
+    def __contains__(self, key: str) -> bool:
         return key in self.keys()
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         return self.items().__iter__()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.items().__str__()

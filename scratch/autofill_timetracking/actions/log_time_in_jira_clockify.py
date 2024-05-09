@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
-from screenpy.actions import Eventually, Pause, See, SeeAllOf
+from screenpy.actions import Eventually, Pause, See, SeeAllOf, Silently
 from screenpy.pacing import beat
 from screenpy.protocols import Performable
 from screenpy.resolutions import IsNot
@@ -92,30 +92,31 @@ MONTH_MAP = {month: index for index, month in enumerate(calendar.month_name) if 
 
 
 class GetToJiraClockify(Performable):
-    @beat("[TASK] {} attempts to GetToJiraClockify")
+    @beat("{} tries to GetToJiraClockify")
     def perform_as(self, actor: Actor):
-        actor.will(Eventually(Click(DETAIL_SUMMARY_HEADER)))
+        actor.will(Eventually(Silently(Click(DETAIL_SUMMARY_HEADER))))
         actor.will(Click(CLOCKIFY_SUMMARY_HEADER))
-        actor.will(Wait.for_(CLOCKIFY_TIMESHEET_FRAME).to_appear())
-        actor.will(Eventually(SwitchTo.the(CLOCKIFY_TIMESHEET_FRAME)))
-        actor.will(Eventually(Click(CLOCKIFY_MANUAL_BUTTON)))
+        actor.will(Silently(Wait.for_(CLOCKIFY_TIMESHEET_FRAME).to_appear()))
+        actor.will(Silently(SwitchTo.the(CLOCKIFY_TIMESHEET_FRAME)))
+        actor.will(Eventually(Silently(Click(CLOCKIFY_MANUAL_BUTTON))))
         actor.should(
-            Eventually(
-                SeeAllOf(
-                    (Element(TIME_INPUT_FIELD), IsClickable()),
-                    (Element(DATE_PICKER), IsClickable()),
-                    (Element(FROM_TIME_FIELD), IsClickable()),
-                    (Element(TO_TIME_FIELD), IsClickable()),
-                    (Element(ADD_TIME_BUTTON), IsClickable()),
-                    (Element(PROJECT_DROPDOWN), IsClickable()),
+            Silently(
+                Eventually(
+                    SeeAllOf(
+                        (Element(TIME_INPUT_FIELD), IsClickable()),
+                        (Element(DATE_PICKER), IsClickable()),
+                        (Element(FROM_TIME_FIELD), IsClickable()),
+                        (Element(TO_TIME_FIELD), IsClickable()),
+                        (Element(ADD_TIME_BUTTON), IsClickable()),
+                        (Element(PROJECT_DROPDOWN), IsClickable()),
+                    )
                 )
             )
         )
-        return
 
 
-class LogTimeInJiraClockify(Performable):
-    @beat("[TASK] {} attempts to LogTimeInJiraClockify")
+class LogTime(Performable):
+    @beat("{} tries to LogTime {info_to_log}")
     def perform_as(self, actor: Actor):
         actor.will(ChooseDateFromPicker(self.date))
         hours_value = self._convert_timedelta(self.delta)
@@ -137,20 +138,29 @@ class LogTimeInJiraClockify(Performable):
             Eventually(Click(self.project_option)),
         )
         actor.will(Eventually(Click(ADD_TIME_BUTTON)))
-        actor.will(Eventually(See(Element(MESSAGE_MANUAL), IsClickable())))
-        return
+        actor.will(Silently(Wait.for_(MESSAGE_MANUAL).to_be_clickable()))
+
+    @property
+    def info_to_log(self) -> str:
+        hrs, mins, secs = LogTime.__convert_timedelta(self.delta)
+        return f'{self.date.strftime("%m/%d/%Y")} {hrs:02}:{mins:02}:{secs:02}'
 
     @staticmethod
-    def _convert_timedelta(td: timedelta) -> str:
+    def __convert_timedelta(td: timedelta) -> tuple[int, int, int]:
         """clockify needs the format to be HHMMSS"""
-        data = rdd.normalize_timedelta_units(
-            td, units=[rdd.HOURS, rdd.MINUTES, rdd.SECONDS]
+        data = rdd.split_timedelta_units(
+            td, keys=[rdd.HOURS, rdd.MINUTES, rdd.SECONDS]
         )
         hrs = data[rdd.HOURS]
         if hrs > 24:
             raise ValueError("We should not be adding more than 24 hours")
         mins = data[rdd.MINUTES]
         secs = data[rdd.SECONDS]
+        return hrs, mins, secs
+
+    @staticmethod
+    def _convert_timedelta(td: timedelta) -> str:
+        hrs, mins, secs = LogTime.__convert_timedelta(td)
         return f"{hrs:02}{mins:02}{secs:02}"
 
     def __init__(
@@ -163,13 +173,13 @@ class LogTimeInJiraClockify(Performable):
 
 
 class ChooseDateFromPicker(Performable):
-    @beat("[TASK] {} attempts to ChooseDateFromPicker")
+    @beat("{} tries to ChooseDateFromPicker {dt_to_log}")
     def perform_as(self, actor: Actor):
         dt = self.dt
 
-        actor.will(Eventually(Click(DATE_PICKER)))
-        monthname = Text(MONTH_HEADER).answered_by(actor)
-        yeartext = Text(YEAR_HEADER).answered_by(actor)
+        actor.will(Silently(Eventually(Click(DATE_PICKER))))
+        monthname = Silently(Text(MONTH_HEADER)).answered_by(actor)
+        yeartext = Silently(Text(YEAR_HEADER)).answered_by(actor)
         dt_target_rounded = datetime(
             dt.year, dt.month, 1, dt.hour, dt.minute, dt.second
         )
@@ -180,10 +190,10 @@ class ChooseDateFromPicker(Performable):
         clicks = abs(month_offset)
 
         for _cnt in range(clicks):
-            actor.will(Eventually(Click(button)))
-            actor.will(Pause(0.35).seconds_because("javascript updating"))
+            actor.will(Silently(Eventually(Click(button))))
+            actor.will(Silently(Pause(0.35).seconds_because("javascript updating")))
 
-        monthname = Text(MONTH_HEADER).answered_by(actor)
+        monthname = Silently(Text(MONTH_HEADER)).answered_by(actor)
         if MONTH_MAP[monthname] != dt.month:
             raise Exception(
                 f"logic error - should have gotten {dt.month}, "
@@ -200,9 +210,12 @@ class ChooseDateFromPicker(Performable):
         # fmt: on
         # @formatter:on
 
-        actor.will(Eventually(Click(DATE_BUTTON)))
-        actor.should(Eventually(See(Element(MONTH_HEADER), IsNot(Visible()))))
-        return
+        actor.will(Silently(Eventually(Click(DATE_BUTTON))))
+        actor.should(Silently(Eventually(See(Element(MONTH_HEADER), IsNot(Visible())))))
+
+    @property
+    def dt_to_log(self) -> str:
+        return self.dt.strftime("%m/%d/%Y")
 
     def __init__(self, dt: datetime):
         self.dt = dt
