@@ -40,6 +40,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.ruff]
 line-length = 88
 target-version = "py312"
+output-format = "concise"
 extend-exclude = [
     ".github",
     ".pytest_cache",
@@ -189,7 +190,7 @@ extend-safe-fixes = [
     "RET504",
     "UP007",
     "RSE102",
-    "SIM105",
+    "SIM105", "SIM117",
     "W291",
 ]
 
