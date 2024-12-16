@@ -48,7 +48,7 @@ JUMPCLOUD_CONTINUE = Target("jumpcloud continue").located(
     By.xpath("//button[@type='submit']")
 )
 JUMPCLOUD_PASSWORD = Target("jumpcloud password").located(
-    By.xpath("//input[@placeholder='Password']")
+    By.xpath("//input[@placeholder='User Password']")
 )
 
 

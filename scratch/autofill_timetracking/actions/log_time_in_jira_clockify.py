@@ -13,7 +13,7 @@ from screenpy.resolutions import IsNot
 from screenpy_selenium import Target
 from screenpy_selenium.actions import Chain, Click, Enter, SwitchTo, Wait
 from screenpy_selenium.questions import Element, Text
-from screenpy_selenium.resolutions import IsClickable, Visible
+from screenpy_selenium.resolutions import IsClickable, Visible, Clickable
 
 from .. import readabledelta as rdd
 from ..by import By
@@ -178,6 +178,9 @@ class ChooseDateFromPicker(Performable):
         dt = self.dt
 
         actor.will(Silently(Eventually(Click(DATE_PICKER))))
+        actor.will(See(Element(PREV_MONTH), Clickable()))
+        actor.will(See(Element(NEXT_MONTH), Clickable()))
+        
         monthname = Silently(Text(MONTH_HEADER)).answered_by(actor)
         yeartext = Silently(Text(YEAR_HEADER)).answered_by(actor)
         dt_target_rounded = datetime(
