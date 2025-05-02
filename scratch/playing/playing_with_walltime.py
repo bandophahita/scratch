@@ -158,6 +158,23 @@ print(absolute_sub(dt6, dt5))
 
 utc1 = ZoneInfo("UTC")
 utc2 = UTC
-print()
+print(line())
 
 
+# dt_start = datetime(2025, 3, 9, 0, tzinfo=CST)  # midnight on the day DST occurs
+# dt_end = datetime(2025, 3, 9, 3, tzinfo=CST)  # 3am after DST transition 
+
+dt_start = AbsoluteDateTime(2025, 3, 9, 0, tzinfo=CST)
+dt_end = AbsoluteDateTime(2025, 3, 9, 3, tzinfo=CST)
+
+# dt_start = WallDateTime(2025, 3, 9, 0, tzinfo=CST)
+# dt_end = WallDateTime(2025, 3, 9, 3, tzinfo=CST)
+
+print(dt_end-dt_start)
+print(wall_sub(dt_end, dt_start))
+print(absolute_sub(dt_end, dt_start))
+
+
+
+
+print(line())
