@@ -1,25 +1,25 @@
 from __future__ import annotations
 
-import typing_extensions as t
+from typing import TYPE_CHECKING, Generic, ParamSpec, TypeVar, assert_type, overload
 
-if t.TYPE_CHECKING:
+if TYPE_CHECKING:
     from collections.abc import Callable
 
-P = t.ParamSpec("P")
-T_co = t.TypeVar("T_co", covariant=True)
+P = ParamSpec("P")
+T_co = TypeVar("T_co", covariant=True)
 
 
-class ExpectCallable(t.Generic[P, T_co]): ...
+class ExpectCallable(Generic[P, T_co]): ...
 
 
 class ExpectType(ExpectCallable[P, T_co]): ...
 
 
-@t.overload
+@overload
 def expect(
     v: type[T_co], /, *args: P.args, **kwargs: P.kwargs
 ) -> ExpectType[P, T_co]: ...
-@t.overload
+@overload
 def expect(
     v: Callable[P, T_co], /, *args: P.args, **kwargs: P.kwargs
 ) -> ExpectCallable[P, T_co]: ...
@@ -36,5 +36,9 @@ class A:
 def fn(inp: str, /) -> None: ...
 
 
-t.assert_type(expect(A), ExpectType[[], A])  # Shouldn't be allowed
-t.assert_type(expect(fn, "inp"), ExpectCallable[[str], None])
+assert_type(expect(A), ExpectType[[], A])  # Shouldn't be allowed
+assert_type(expect(fn, "inp"), ExpectCallable[[str], None])
+
+expect(A)
+expect(fn, "inp")
+
