@@ -123,7 +123,7 @@ class LocalStorage:
             "return window.localStorage.getItem(arguments[0]);", key
         )
 
-    def set(self, key: str, value: str) -> None:  # noqa: A003
+    def set(self, key: str, value: str) -> None:
         if self.__on_blank():
             return
         self.driver.execute_script(

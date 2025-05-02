@@ -8,7 +8,7 @@ import sys
 import traceback
 from pathlib import Path
 from types import FrameType
-from typing import TYPE_CHECKING, Any, TypeAlias, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import hamcrest
 import hamcrest.core.base_matcher
@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Mapping, Sequence
     from types import FunctionType, TracebackType
 
-    T_exc: TypeAlias = (
+    type T_exc = (
         tuple[type[BaseException], BaseException, TracebackType | None]
         | tuple[None, None, None]
         | None
@@ -63,10 +63,10 @@ else:  # pragma: no cover
     def currentframe() -> FrameType:
         """Return the frame object for the caller's stack frame."""
         try:
-            raise Exception
-        except Exception:
+            raise Exception  # noqa:TRY301,TRY002
+        except Exception:  # noqa: BLE001
             rt = sys.exc_info()
-            return rt[2].tb_frame.f_back  # type: ignore
+            return rt[2].tb_frame.f_back  # type: ignore[union-attr,return-value]
 
 
 def mod_path(function: FunctionType | Callable) -> Path:
@@ -107,7 +107,7 @@ ignore_srcfiles: list[Path] = [
 # the overhead of fetching caller information, even when _getframe() is
 # available.
 # if not hasattr(sys, '_getframe'):
-#    _srcfile = None  # noqa: ERA001
+#    _srcfile = None
 
 
 def find_file_dir(file: str, parents: Sequence[Path] | None = None) -> Path:
@@ -116,7 +116,7 @@ def find_file_dir(file: str, parents: Sequence[Path] | None = None) -> Path:
         for pl in p.glob(file):
             return pl.parent
     # return next(pl for p in parents for pl in p.glob(file)).parent
-    raise Exception(f"cannot find folder containing {file}")
+    raise Warning(f"cannot find folder containing {file}")
 
 
 def project_name_root(project_name: str, parents: Sequence[Path] | None = None) -> Path:
@@ -125,7 +125,7 @@ def project_name_root(project_name: str, parents: Sequence[Path] | None = None) 
         if p.name == project_name:
             return p
     # return next(p for p in parents if p.name == project_name)
-    raise Exception("cannot find project root")
+    raise Warning("cannot find project root")
 
 
 def find_root(project_name: str | None = None) -> Path:
@@ -138,13 +138,13 @@ def find_root(project_name: str | None = None) -> Path:
         if rt := find_file_dir(file, parents):
             return rt
 
-    raise Exception("cannot find project root")
+    raise Warning("cannot find project root")
 
 
 PROJECT_ROOT = find_root()
 
 
-class ScreenpyLogger(__logger):  # type: ignore
+class ScreenpyLogger(__logger):  # type: ignore[valid-type,misc]
     TRACE = TRACE
     ALL = ALL
     STDERR = STDERR
@@ -281,7 +281,7 @@ class ScreenpyLogger(__logger):  # type: ignore
 
         orig_f: FrameType = f
         while f and stacklevel > 1:
-            f = f.f_back  # type: ignore
+            f = f.f_back  # type: ignore[assignment]
             stacklevel -= 1
         if not f:
             f = orig_f
@@ -312,7 +312,7 @@ def create_logger(name: str, enable_filepath: bool = False) -> ScreenpyLogger:
     # pycharm gets confused about getLogger returning ScreenpyLogger
     # mypy also doesn't understand this since it is a dynamic call.
     # noinspection PyTypeChecker
-    logger: ScreenpyLogger = logging.getLogger(name)  # type: ignore
+    logger: ScreenpyLogger = logging.getLogger(name)  # type: ignore[assignment]
     logger.pycharm_filelink = enable_filepath
     logging.setLoggerClass(__logger)
     logger.setLevel(DEBUG)

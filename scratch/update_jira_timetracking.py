@@ -19,7 +19,7 @@ Things you will need to run this script:
  - Your google user/pass and OTP secret.
     (the value that you QR code scan to add 2FA on your phone)
 
-"""  # noqa: E501
+"""
 
 from __future__ import annotations
 
@@ -38,7 +38,7 @@ from autofill_timetracking.actions import (
 )
 from autofill_timetracking.by import By
 from autofill_timetracking.logger import create_logger, enable_logger
-from clockify_api_client.client import ClockifyAPIClient  # type: ignore
+from clockify_api_client.client import ClockifyAPIClient
 from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
 from screenpy import Actor, settings
@@ -172,7 +172,7 @@ if __name__ == "__main__":
     keyname_project = "project"
 
     USERNAME = "username"
-    PASSWORD = "password"
+    PASSWORD = "password"  # noqa: S105
     SETKEYS = "setkeys"
     TIMEZONE = "timezone"
     DAYSTART = "daystart"
@@ -321,7 +321,7 @@ if __name__ == "__main__":
     elif len(dates) == 1:
         end = start + relativedelta(days=1)
     else:
-        raise Exception("unhandled condition")
+        raise Warning("unhandled condition")
 
     PROJECT_OPTION = Target.the("project option").located_by(
         By.xpath(

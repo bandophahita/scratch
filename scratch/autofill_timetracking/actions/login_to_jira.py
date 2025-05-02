@@ -12,8 +12,8 @@ from screenpy_selenium.actions import Click, Enter2FAToken, Open, Wait
 from screenpy_selenium.questions import Element
 from screenpy_selenium.resolutions import IsClickable
 
-from ..by import By
-from . import EnterPassword, EnterUsername
+from scratch.autofill_timetracking.actions import EnterPassword, EnterUsername
+from scratch.autofill_timetracking.by import By
 
 if TYPE_CHECKING:
     from screenpy import Actor

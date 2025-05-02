@@ -25,7 +25,7 @@ class By(_By):
         return By.css_attr(s, "data-testid")
 
     @staticmethod
-    def id(s: str) -> T:  # noqa: A003
+    def id(s: str) -> T:
         return (By.ID, s)
 
     @staticmethod

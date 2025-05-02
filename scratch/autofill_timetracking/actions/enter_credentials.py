@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 from screenpy.pacing import beat
 from screenpy_selenium.actions import Enter
 
-from ..ability import Authenticate
+from scratch.autofill_timetracking.ability import Authenticate
 
 if TYPE_CHECKING:
     from screenpy.actor import Actor
