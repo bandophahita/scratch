@@ -5,8 +5,10 @@
 from inline_future import inlined_future, run_inline_future
 from concurrent.futures import ProcessPoolExecutor
 
+
 def fib(n):
-    return 1 if n <= 2 else (fib(n-1) + fib(n-2))
+    return 1 if n <= 2 else (fib(n - 1) + fib(n - 2))
+
 
 @inlined_future
 def compute_fibs(n):

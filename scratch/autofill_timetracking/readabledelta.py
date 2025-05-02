@@ -11,7 +11,6 @@ from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any, Self, TypeVar
 
 from dateutil.relativedelta import relativedelta
-from typing_extensions import Self
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

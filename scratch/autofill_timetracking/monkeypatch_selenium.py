@@ -42,8 +42,10 @@ def monkeypatch() -> None:
     import selenium.common.exceptions
 
     def __str_replacement__(
-        self: selenium.common.exceptions.WebDriverException
-        | selenium.common.exceptions.UnexpectedAlertPresentException,
+        self: (
+            selenium.common.exceptions.WebDriverException
+            | selenium.common.exceptions.UnexpectedAlertPresentException
+        ),
     ) -> str:
         """Hack to fix extra newline at the end of exceptions"""
         exception_msg = f"{self.__class__.__name__}: {self.msg}"
@@ -75,6 +77,3 @@ def monkeypatch() -> None:
     webdriver.Firefox.__del__ = __del_replacement__  # type: ignore[attr-defined]
     webdriver.Chrome.__del__ = __del_replacement__  # type: ignore[attr-defined]
     webdriver.Edge.__del__ = __del_replacement__  # type: ignore[attr-defined]
-
-
-

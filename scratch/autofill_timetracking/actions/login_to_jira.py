@@ -142,7 +142,6 @@ class LoginToJiraViaJumpCloud(Performable):
         actor.will(Enter(t5).into(TOKEN_5))
         actor.will(Enter(t6).into(TOKEN_6))
 
-
     @staticmethod
     def using(url: str) -> LoginToJiraViaGoogle:
         return LoginToJiraViaGoogle(url)

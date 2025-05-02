@@ -148,9 +148,7 @@ class LogTime(Performable):
     @staticmethod
     def __convert_timedelta(td: timedelta) -> tuple[int, int, int]:
         """clockify needs the format to be HHMMSS"""
-        data = rdd.split_timedelta_units(
-            td, keys=[rdd.HOURS, rdd.MINUTES, rdd.SECONDS]
-        )
+        data = rdd.split_timedelta_units(td, keys=[rdd.HOURS, rdd.MINUTES, rdd.SECONDS])
         hrs = data[rdd.HOURS]
         if hrs > 24:
             raise ValueError("We should not be adding more than 24 hours")

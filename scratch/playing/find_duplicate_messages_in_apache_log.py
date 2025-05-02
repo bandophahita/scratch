@@ -3,10 +3,8 @@ import re
 
 file_name = "/Users/m.wilson/Downloads/logs/sms/send_sms_302.log"
 
-with open(file_name, 'r') as fp:
+with open(file_name, "r") as fp:
     lines = fp.readlines()
-
-
 
 
 seen = {}

@@ -4,6 +4,7 @@ import pytest
 class MyObj1:
     val = 5
 
+
 class MyObj2:
     val = "hello dolly"
 
@@ -16,4 +17,3 @@ def function_fixture():
 @pytest.fixture(scope="session")
 def session_fixture():
     return MyObj2()
-
