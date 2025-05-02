@@ -695,6 +695,8 @@ def part1():
     columns = create_columns()
     for line in INPUT.splitlines():
         match = pat.search(line)
+        if match is None:
+            continue
         vals = [int(val) for val in match.groups()]
         columns.move_many(*vals)
     print(f"{''.join(columns.top_boxes())}")
@@ -766,6 +768,8 @@ def part2():
     columns = create_columns()
     for line in INPUT.splitlines():
         match = pat.search(line)
+        if match is None:
+            continue
         vals = [int(val) for val in match.groups()]
         columns.move_many_9001(*vals)
     print(f"{''.join(columns.top_boxes())}")

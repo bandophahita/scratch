@@ -30,14 +30,6 @@ from typing import TYPE_CHECKING
 
 import keyring
 import pytz
-from autofill_timetracking.ability import Authenticate, ManageBrowserLocalStorage
-from autofill_timetracking.actions import (
-    GetToJiraClockify,
-    LoginToJiraViaJumpCloud,
-    LogTime,
-)
-from autofill_timetracking.by import By
-from autofill_timetracking.logger import create_logger, enable_logger
 from clockify_api_client.client import ClockifyAPIClient
 from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
@@ -48,6 +40,18 @@ from screenpy_pyotp.abilities import AuthenticateWith2FA
 from screenpy_selenium import Target
 from screenpy_selenium.abilities import BrowseTheWeb
 from setup_selenium import Browser, SetupSelenium, set_logger
+
+from scratch.autofill_timetracking.ability import (
+    Authenticate,
+    ManageBrowserLocalStorage,
+)
+from scratch.autofill_timetracking.actions import (
+    GetToJiraClockify,
+    LoginToJiraViaJumpCloud,
+    LogTime,
+)
+from scratch.autofill_timetracking.by import By
+from scratch.autofill_timetracking.logger import create_logger, enable_logger
 
 if TYPE_CHECKING:
     from selenium.webdriver.remote.webdriver import WebDriver
@@ -127,7 +131,7 @@ def get_args_val(
     keyname = keyname or key
     if default is None and key not in args:
         raise ValueError(f"Could not find {KEY}:{keyname} in keychain")
-    return getattr(args, key) if key in args else default
+    return getattr(args, key) if key in args else default  # type: ignore[return-value]
 
 
 def get_keychain_val(
@@ -335,7 +339,7 @@ if __name__ == "__main__":
 
     actor = Actor.named("user")
 
-    day = start
+    day: datetime = start
     runonce = True
 
     def setup_actor(actor: Actor) -> None:

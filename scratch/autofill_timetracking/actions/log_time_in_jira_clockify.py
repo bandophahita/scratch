@@ -184,7 +184,7 @@ class ChooseDateFromPicker(Performable):
         monthname = Silently(Text(MONTH_HEADER)).answered_by(actor)
         yeartext = Silently(Text(YEAR_HEADER)).answered_by(actor)
         dt_target_rounded = datetime(
-            dt.year, dt.month, 1, dt.hour, dt.minute, dt.second
+            dt.year, dt.month, 1, dt.hour, dt.minute, dt.second, tzinfo=dt.tzinfo
         )
         picker_dt = parse(f"{monthname} 1 {yeartext}")
         d = relativedelta(dt_target_rounded, picker_dt)

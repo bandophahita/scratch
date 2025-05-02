@@ -11,6 +11,7 @@ from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any, Self, TypeVar
 
 from dateutil.relativedelta import relativedelta
+from typing_extensions import Self
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -78,7 +79,7 @@ class ReadableDelta(timedelta):
     Human readable version of timedelta
     """
 
-    def __new__(cls: type[T], *args: Any, **kwargs: Any) -> T:
+    def __new__(cls, *args: Any, **kwargs: Any) -> Self:
         years = kwargs.pop(YEARS, 0)
         if DAYS in kwargs:
             kwargs[DAYS] += 365 * years
@@ -88,7 +89,7 @@ class ReadableDelta(timedelta):
         return timedelta.__new__(cls, *args, **kwargs)
 
     @classmethod
-    def from_timedelta(cls: type[T], dt: timedelta) -> T:
+    def from_timedelta(cls, dt: timedelta) -> Self:
         return cls(days=dt.days, seconds=dt.seconds, microseconds=dt.microseconds)
 
     def __unicode__(self) -> str:
