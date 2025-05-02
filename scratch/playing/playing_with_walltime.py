@@ -56,7 +56,7 @@ class AbsoluteDateTime(datetime):
         return datetime.__lt__(self._utc_datetime, other.astimezone(UTC))
 
     @classmethod
-    def as_absolute_datetime(cls, dt):
+    def as_absolute_datetime(cls, dt: datetime):
         """Construct an AbsoluteDatetime from any datetime subclass"""
         return cls(
             *dt.timetuple()[0:6],
@@ -99,7 +99,7 @@ class WallDateTime(datetime):
         )
 
     @classmethod
-    def as_wall_datetime(cls, dt):
+    def as_wall_datetime(cls, dt: datetime):
         """Construct a WallDateTime from any datetime subclass"""
         return cls(
             *dt.timetuple()[0:6],
