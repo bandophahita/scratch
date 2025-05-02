@@ -6,7 +6,7 @@ authors = ["Marcel Wilson <trenchrats@gmail.com>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.12"
 clockify-api-client = ">=0.1.0"
 python-dateutil = "*"
 pytz = "*"
@@ -121,27 +121,24 @@ select = [
     #    "FBT",  # boolean trap
 ]
 ignore = [
-    #    "PT003",  # pytest fixture scope implied
-    #    "PT004",  # pytest fixture setup doesn't return anything
-    "RUF100",  # blanket noqa
-    "ANN101",  # missing-type-self
-    "ANN102",  # cls 
-    "E501",   # line too long -- black will take care of this for us
-    "E721", # type-comparison WTF? 
-    "B028", # No explicit `stacklevel` keyword argument found
-    "SIM102", # single if instead of nested -- only sometimes useful
-    "SIM114", # combine if branches using logical OR -- only sometimes useful
-    "SIM115", # use context handler for open -- situationally useful
-    "SIM118", # use x in y instead of y.keys() - sometimes we want the keys 
-    "SIM300", # yoda conditions -- meh
+    # full rule sets
+    "ARG",  # flake8-unused-arguments
+    "C90", # mccabe
+    "EM",  # flake8-errmsg
+    "ERA",  # eradicate (commented out code)
+    "FBT",  # flake8-boolean-trap
+    "FIX",  # flake8-fixme
+    "G", # flake8-logging-format
+    "N", # pep8 naming -- dear lord, leave this off
+    "PTH", # flake8-use-pathlib (unclear if we NEED to do this) 
+    "SLF", # flake8-self (accessing private members)
+    "T20",  # flake8-print
+    "TD",  #TODOs (names,dates,etc)
 
-    "PERF203", # `try`-`except` within a loop incurs performance overhead
-    "PERF401", # use list comp
-    "UP038", # use `int | float` in `isinstance` *slower
-    "UP040", # use type vs TypeAlias
-
-    # NOT OPTIONAL. MUST REMAIN AS SET
-    # these are all completely unnecessary 
+    ###  NOT OPTIONAL. MUST REMAIN AS SET ###
+    # these are all completely unnecessary
+    "B028", # No explicit `stacklevel` keyword argument found in logging
+    "COM812",  # missing trailing comma
     "D100", # Missing docstring in public module
     "D101", # Missing docstring in public class
     "D102", # Missing docstring in public method
@@ -170,27 +167,38 @@ ignore = [
     "D412", # No blank lines allowed between a section header and its content
     "D413", # Missing blank line after last section
     "D415", # First line should end with punctuation
-    "A003", # Class attribute shadow builtin
+    "E501",   # line too long -- black will take care of this for us
+    "PERF203", # `try`-`except` within a loop incurs performance overhead
     "PLC0414", # useless-import-alias
     "PLR0911", # too-many-return-statements
     "PLR0912", # too-many-branches
     "PLR0913", # too-many-arguments
     "PLR0915", # too-many-statements
     "PLR2004", # magic-value-comparison
-
+    "PT003", # function scope implied 
+    "PT011", # pytest.raises(Exception) is too broad
+    "S101", # use of assert
+    "TC006",  # cast wants str for types (blech!)
+    "TRY003",  # Avoid specifying long messages outside the exception class
+    "UP038", # use `int | float` in `isinstance` *slower
 ]
 
 extend-safe-fixes = [
-    "EM101", "EM102",
-    "E711", # Comparison to `None` should be `cond is None`
-    "TCH001", "TCH002", "TCH003", "TCH004",
+    "ANN201", "ANN202", "ANN204",
+    "B011",
     "C419",
-    "D200", "D205", "D415",
+    "E711", # Comparison to `None` should be `cond is None`
+    "EM101", "EM102",
+    "PLR1714",
     "PT003", "PT006", "PT018",
     "RET504",
-    "UP007",
     "RSE102",
-    "SIM105", "SIM117",
+    "SIM102", "SIM103", "SIM105", "SIM108", "SIM110",
+    "TCH001", "TCH002", "TCH003", "TCH004",
+    "TID252", #absolute import over relative
+    "TRY400",
+    "UP007",
+    "UP040",
     "W291",
 ]
 
