@@ -11,27 +11,37 @@ from screenpy.pacing import beat
 from screenpy.protocols import Performable
 from screenpy.resolutions import IsNot
 from screenpy_selenium import Target
-from screenpy_selenium.actions import Chain, Click, Enter, SwitchTo, Wait
+from screenpy_selenium.actions import Chain, Click, Enter, SwitchTo
 from screenpy_selenium.questions import Element, Text
 from screenpy_selenium.resolutions import Clickable, IsClickable, Visible
 
 from scratch.autofill_timetracking import readabledelta as rdd
+from scratch.autofill_timetracking.actions.scroll_into_view import ScrollIntoView
+from scratch.autofill_timetracking.actions.wait import Wait
 from scratch.autofill_timetracking.by import By
 
 if TYPE_CHECKING:
     from screenpy import Actor
 
-DETAIL_SUMMARY_HEADER = Target("Details Summary Header").located(
+MY_PINNED_FIELDS_SUMMARY_HEADER = Target("My Pinned Fields summary header").located(
     By.xpath(
         "//div[@data-testid='issue.views.issue-details.issue-layout.container-right']"
-        "//summary[contains(string(), 'Details')]"
+        "//h2[contains(string(), 'My pinned fields')]/ancestor::summary"
+    )
+)
+
+
+DETAIL_SUMMARY_HEADER = Target("Details summary header").located(
+    By.xpath(
+        "//div[@data-testid='issue.views.issue-details.issue-layout.container-right']"
+        "//h2[contains(string(), 'Details')]/ancestor::summary"
     )
 )
 
 CLOCKIFY_SUMMARY_HEADER = Target("Clockify Summary Header").located(
     By.xpath(
         "//div[@data-testid='issue.views.issue-details.issue-layout.container-right']"
-        "//summary[contains(string(), 'Clockify')]"
+        "//h2[contains(string(), 'Clockify')]/ancestor::summary"
     )
 )
 
@@ -94,7 +104,13 @@ MONTH_MAP = {month: index for index, month in enumerate(calendar.month_name) if 
 class GetToJiraClockify(Performable):
     @beat("{} tries to GetToJiraClockify")
     def perform_as(self, actor: Actor):
-        actor.will(Eventually(Silently(Click(DETAIL_SUMMARY_HEADER))))
+        actor.will(Wait.for_(MY_PINNED_FIELDS_SUMMARY_HEADER).to_be_clickable())
+        actor.will(Click(MY_PINNED_FIELDS_SUMMARY_HEADER))
+        actor.will(Wait.for_(DETAIL_SUMMARY_HEADER).to_stop_moving())
+
+        actor.will(Click(DETAIL_SUMMARY_HEADER))
+        actor.will(Wait.for_(CLOCKIFY_SUMMARY_HEADER).to_stop_moving())
+
         actor.will(Click(CLOCKIFY_SUMMARY_HEADER))
         actor.will(Silently(Wait.for_(CLOCKIFY_TIMESHEET_FRAME).to_appear()))
         actor.will(Silently(SwitchTo.the(CLOCKIFY_TIMESHEET_FRAME)))
@@ -113,6 +129,10 @@ class GetToJiraClockify(Performable):
                 )
             )
         )
+        actor.will(Silently(SwitchTo.default()))
+        actor.will(ScrollIntoView(CLOCKIFY_SUMMARY_HEADER).inline_start())
+        actor.will(Silently(SwitchTo.the(CLOCKIFY_TIMESHEET_FRAME)))
+        return
 
 
 class LogTime(Performable):

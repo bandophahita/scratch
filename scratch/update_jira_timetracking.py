@@ -45,13 +45,13 @@ from scratch.autofill_timetracking.ability import (
     Authenticate,
     ManageBrowserLocalStorage,
 )
-from scratch.autofill_timetracking.actions import (
-    GetToJiraClockify,
-    LoginToJiraViaJumpCloud,
-    LogTime,
-)
 from scratch.autofill_timetracking.by import By
 from scratch.autofill_timetracking.logger import create_logger, enable_logger
+from scratch.autofill_timetracking.tasks.log_time_in_jira_clockify import (
+    GetToJiraClockify,
+    LogTime,
+)
+from scratch.autofill_timetracking.tasks.login_to_jira import LoginToJiraViaJumpCloud
 
 if TYPE_CHECKING:
     from selenium.webdriver.remote.webdriver import WebDriver
