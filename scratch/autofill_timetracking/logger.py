@@ -18,6 +18,8 @@ import screenpy.narration.stdout_adapter
 import screenpy.resolutions
 import screenpy_selenium.actions.chain
 
+import scratch.autofill_timetracking.actions
+
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping, Sequence
     from types import FunctionType, TracebackType
@@ -87,6 +89,9 @@ ignore_srcfiles: list[Path] = [
     mod_path(screenpy.actions.silently.Silently),
     mod_path(screenpy.actions.see_all_of.SeeAllOf.describe),
     mod_path(screenpy.actions.see_any_of.SeeAnyOf.describe),
+    mod_path(scratch.autofill_timetracking.actions.see.See.describe),
+    mod_path(scratch.autofill_timetracking.actions.see_all_of.SeeAllOf.describe),
+    mod_path(scratch.autofill_timetracking.actions.see_any_of.SeeAnyOf.describe),
     mod_path(hamcrest.core.base_matcher.BaseMatcher.matches),
     mod_path(hamcrest.assert_that),
     mod_path(hamcrest.core.core.isnot.is_not),

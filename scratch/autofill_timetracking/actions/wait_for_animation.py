@@ -3,7 +3,7 @@ from typing import Self
 from screenpy import Actor, Quietly, beat
 from screenpy_selenium import Pause, Target
 
-from scratch.autofill_timetracking.actions.wait import Wait
+from scratch.autofill_timetracking.actions import Wait
 
 
 class WaitforAnimation:

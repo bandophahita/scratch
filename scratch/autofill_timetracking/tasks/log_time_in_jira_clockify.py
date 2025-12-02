@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
-from screenpy.actions import Eventually, Pause, See, SeeAllOf, Silently
+from screenpy.actions import Eventually, Pause, Silently
 from screenpy.pacing import beat
 from screenpy.protocols import Performable
 from screenpy.resolutions import EqualTo, IsNot
@@ -16,9 +16,13 @@ from screenpy_selenium.questions import Element, Text
 from screenpy_selenium.resolutions import Clickable, IsClickable, Visible
 
 from scratch.autofill_timetracking import readabledelta as rdd
-from scratch.autofill_timetracking.actions.conditionally import Conditionally
-from scratch.autofill_timetracking.actions.scroll_into_view import ScrollIntoView
-from scratch.autofill_timetracking.actions.wait import Wait
+from scratch.autofill_timetracking.actions import (
+    Conditionally,
+    ScrollIntoView,
+    See,
+    SeeAllOf,
+    Wait,
+)
 from scratch.autofill_timetracking.by import By
 
 if TYPE_CHECKING:

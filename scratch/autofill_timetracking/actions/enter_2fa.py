@@ -1,15 +1,15 @@
 from typing import Self
 
 from screenpy import Actor, beat
-from screenpy_pyotp.abilities import AuthenticateWith2FA
 from screenpy_selenium import Enter, Target
 from selenium.webdriver import ActionChains
 
-from scratch.autofill_timetracking.ability.authenticate import (
+from scratch.autofill_timetracking.ability import (
+    AuthenticateWith2FA,
     AuthenticateWith2FAGoogle,
     AuthenticateWith2FAJumpcloud,
 )
-from scratch.autofill_timetracking.actions.wait import Wait
+from scratch.autofill_timetracking.actions import Wait
 from scratch.autofill_timetracking.by import By
 
 

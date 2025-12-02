@@ -5,10 +5,6 @@ from typing import TYPE_CHECKING, Self
 
 from screenpy.protocols import Forgettable
 
-from scratch.autofill_timetracking.ability.authenticate_with_2fa import (
-    AuthenticateWith2FA,
-)
-
 if TYPE_CHECKING:
     from screenpy import Actor
 
@@ -77,12 +73,4 @@ class AuthenticateGoogle(Authenticate):
 
 
 class AuthenticateJumpcloud(Authenticate):
-    pass
-
-
-class AuthenticateWith2FAJumpcloud(AuthenticateWith2FA):
-    pass
-
-
-class AuthenticateWith2FAGoogle(AuthenticateWith2FA):
     pass

@@ -61,3 +61,11 @@ class AuthenticateWith2FA:
 
     def __init__(self, otp: pyotp.TOTP) -> None:
         self.otp = otp
+
+
+class AuthenticateWith2FAJumpcloud(AuthenticateWith2FA):
+    pass
+
+
+class AuthenticateWith2FAGoogle(AuthenticateWith2FA):
+    pass

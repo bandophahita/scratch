@@ -11,13 +11,16 @@ from screenpy_selenium.actions import Click, Open, Wait
 from screenpy_selenium.questions import Element
 from screenpy_selenium.resolutions import IsClickable
 
-from scratch.autofill_timetracking.ability.authenticate import (
+from scratch.autofill_timetracking.ability import (
     AuthenticateGoogle,
     AuthenticateJumpcloud,
     AuthenticateWith2FAJumpcloud,
 )
-from scratch.autofill_timetracking.actions import EnterPassword, EnterUsername
-from scratch.autofill_timetracking.actions.enter_2fa import EnterGoogle2FAToken
+from scratch.autofill_timetracking.actions import (
+    EnterGoogle2FAToken,
+    EnterPassword,
+    EnterUsername,
+)
 from scratch.autofill_timetracking.by import By
 
 if TYPE_CHECKING:

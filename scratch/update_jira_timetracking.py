@@ -42,13 +42,11 @@ from setup_selenium import Browser, SetupSelenium, set_logger
 
 from scratch.autofill_timetracking.ability import (
     Authenticate,
-    ManageBrowserLocalStorage,
-)
-from scratch.autofill_timetracking.ability.authenticate import (
     AuthenticateGoogle,
     AuthenticateJumpcloud,
     AuthenticateWith2FAGoogle,
     AuthenticateWith2FAJumpcloud,
+    ManageBrowserLocalStorage,
 )
 from scratch.autofill_timetracking.by import By
 from scratch.autofill_timetracking.logger import create_logger, enable_logger
@@ -82,7 +80,7 @@ def setup_selenium() -> WebDriver:
     settings.UNABRIDGED_NARRATION = False
     browser = Browser.CHROME
     headless = False
-    options =SetupSelenium.chrome_options()
+    options = SetupSelenium.chrome_options()
     options.add_argument("guest")
     driver = SetupSelenium.create_driver(browser, headless, options=options)
     driver.set_window_size(1600, 1080)

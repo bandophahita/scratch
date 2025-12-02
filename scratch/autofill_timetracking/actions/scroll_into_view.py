@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Self
 from screenpy import Actor, Quietly, beat
 from screenpy_selenium.abilities import BrowseTheWeb
 
-from scratch.autofill_timetracking.actions.wait_for_animation import WaitforAnimation
+from scratch.autofill_timetracking.actions import WaitforAnimation
 
 if TYPE_CHECKING:
     from screenpy_selenium import Target
