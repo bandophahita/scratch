@@ -366,7 +366,7 @@ if __name__ == "__main__":
     ################################################################################
     client = ClockifyAPIClient().build(api, "api.clockify.me/v1")
 
-    actor = Actor.named("user")
+    actor = Actor.named("User")
 
     day: datetime = start
     runonce = True

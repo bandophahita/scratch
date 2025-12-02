@@ -211,8 +211,8 @@ class ChooseDateFromPicker(Performable):
         dt = self.dt
 
         actor.will(Silently(Eventually(Click(DATE_PICKER))))
-        actor.will(See(Element(PREV_MONTH), Clickable()))
-        actor.will(See(Element(NEXT_MONTH), Clickable()))
+        actor.will(Silently(See(Element(PREV_MONTH), Clickable())))
+        actor.will(Silently(See(Element(NEXT_MONTH), Clickable())))
 
         monthname = Silently(Text(MONTH_HEADER)).answered_by(actor)
         yeartext = Silently(Text(YEAR_HEADER)).answered_by(actor)
