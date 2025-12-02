@@ -36,7 +36,6 @@ from dateutil.relativedelta import relativedelta
 from screenpy import Actor, settings
 from screenpy.narration.stdout_adapter import StdOutAdapter, StdOutManager
 from screenpy.pacing import the_narrator
-from screenpy_pyotp.abilities import AuthenticateWith2FA
 from screenpy_selenium import Target
 from screenpy_selenium.abilities import BrowseTheWeb
 from setup_selenium import Browser, SetupSelenium, set_logger
@@ -45,13 +44,21 @@ from scratch.autofill_timetracking.ability import (
     Authenticate,
     ManageBrowserLocalStorage,
 )
+from scratch.autofill_timetracking.ability.authenticate import (
+    AuthenticateGoogle,
+    AuthenticateJumpcloud,
+    AuthenticateWith2FAGoogle,
+    AuthenticateWith2FAJumpcloud,
+)
 from scratch.autofill_timetracking.by import By
 from scratch.autofill_timetracking.logger import create_logger, enable_logger
 from scratch.autofill_timetracking.tasks.log_time_in_jira_clockify import (
     GetToJiraClockify,
     LogTime,
 )
-from scratch.autofill_timetracking.tasks.login_to_jira import LoginToJiraViaJumpCloud
+from scratch.autofill_timetracking.tasks.login_to_jira import (
+    LoginToJiraViaGoogle,
+)
 
 if TYPE_CHECKING:
     from selenium.webdriver.remote.webdriver import WebDriver
@@ -71,11 +78,13 @@ T_default = str | None
 
 
 def setup_selenium() -> WebDriver:
-    settings.TIMEOUT = 30
+    settings.TIMEOUT = 20
     settings.UNABRIDGED_NARRATION = False
     browser = Browser.CHROME
     headless = False
-    driver = SetupSelenium.create_driver(browser, headless)
+    options =SetupSelenium.chrome_options()
+    options.add_argument("guest")
+    driver = SetupSelenium.create_driver(browser, headless, options=options)
     driver.set_window_size(1600, 1080)
     driver.set_window_position(0, 0)
     return driver
@@ -176,14 +185,16 @@ if __name__ == "__main__":
     keyname_project = "project"
 
     USERNAME = "username"
-    PASSWORD = "password"  # noqa: S105
+    JC_PASSWORD = "password"  # noqa: S105
+    G_PASSWORD = "g_password"  # noqa: S105
     SETKEYS = "setkeys"
     TIMEZONE = "timezone"
     DAYSTART = "daystart"
     PROJECT = "project"
     API = "api"
     URL = "url"
-    OTP = "otp"
+    JC_OTP = "jc_otp"
+    G_OTP = "g_otp"
     DATE = "date"
     HOURS = "hours"
 
@@ -212,13 +223,16 @@ if __name__ == "__main__":
 
     username = get_args_val(args1, default_user, USERNAME, keyname_user)
 
-    keyname_pass = username
-    keyname_otp = f"otp_jc_{username}"
-    # keyname_otp = f"otp_{username}"
+    keyname_jc_pass = f"jc_{username}"
+    keyname_jc_otp = f"otp_jc_{username}"
+    keyname_g_pass = f"g_{username}"
+    keyname_g_otp = f"otp_{username}"
     keyname_api = f"clockify_api_key_{username}"
 
-    default_pass = keyring.get_password(KEY, keyname_pass)
-    default_otp = keyring.get_password(KEY, keyname_otp)
+    default_jc_pass = keyring.get_password(KEY, keyname_jc_pass)
+    default_g_pass = keyring.get_password(KEY, keyname_g_pass)
+    default_jc_otp = keyring.get_password(KEY, keyname_jc_otp)
+    default_g_otp = keyring.get_password(KEY, keyname_g_otp)
     default_api = keyring.get_password(KEY, keyname_api)
 
     parser2.add_argument(
@@ -229,11 +243,19 @@ if __name__ == "__main__":
     )
 
     parser2.add_argument(
-        "-p",
+        "-jcp",
         default=argparse.SUPPRESS,
-        dest=PASSWORD,
+        dest=JC_PASSWORD,
         metavar="PASS",
-        help=f"(default: {in_keychain(default_pass)})",
+        help=f"(default: {in_keychain(default_jc_pass)})",
+    )
+
+    parser2.add_argument(
+        "-gp",
+        default=argparse.SUPPRESS,
+        dest=G_PASSWORD,
+        metavar="PASS",
+        help=f"(default: {in_keychain(default_g_pass)})",
     )
 
     parser2.add_argument(
@@ -251,10 +273,17 @@ if __name__ == "__main__":
     )
 
     parser2.add_argument(
-        "--otp",
+        "--jcotp",
         default=argparse.SUPPRESS,
-        dest=OTP,
-        help=f"one time password secret (default: {in_keychain(default_otp)})",
+        dest=JC_OTP,
+        help=f"jumpcloud one time password secret (default: {in_keychain(default_jc_otp)})",
+    )
+
+    parser2.add_argument(
+        "--gotp",
+        default=argparse.SUPPRESS,
+        dest=G_OTP,
+        help=f"google one time password secret (default: {in_keychain(default_g_otp)})",
     )
 
     parser2.add_argument(
@@ -299,9 +328,11 @@ if __name__ == "__main__":
     ################################################################################
     set_keychain(args, default_user, username, USERNAME, keyname_user)
 
-    password = get_keychain_val(args, default_pass, PASSWORD, keyname_pass)
+    jc_password = get_keychain_val(args, default_jc_pass, JC_PASSWORD, keyname_jc_pass)
+    g_password = get_keychain_val(args, default_g_pass, G_PASSWORD, keyname_g_pass)
     url = get_keychain_val(args, default_url, URL, keyname_url)
-    otp = get_keychain_val(args, default_otp, OTP, keyname_otp)
+    jc_otp = get_keychain_val(args, default_jc_otp, JC_OTP, keyname_jc_otp)
+    g_otp = get_keychain_val(args, default_g_otp, G_OTP, keyname_g_otp)
     api = get_keychain_val(args, default_api, API, keyname_api)
     project = get_keychain_val(args, default_project, PROJECT, keyname_project)
 
@@ -346,9 +377,12 @@ if __name__ == "__main__":
         driver = setup_selenium()
         actor.who_can(
             BrowseTheWeb.using(driver),
-            Authenticate.with_user_pass(username, password),
+            AuthenticateJumpcloud.with_user_pass(username, jc_password),
+            AuthenticateGoogle.with_user_pass(username, g_password),
+            Authenticate.with_user_pass(username, jc_password),
             ManageBrowserLocalStorage.using(driver),
-            AuthenticateWith2FA.using_secret(otp),
+            AuthenticateWith2FAJumpcloud.using_secret(jc_otp),
+            AuthenticateWith2FAGoogle.using_secret(g_otp),
         )
 
     ################################################################################
@@ -366,7 +400,8 @@ if __name__ == "__main__":
             if runonce:
                 setup_actor(actor)
 
-                actor.will(LoginToJiraViaJumpCloud(url))
+                # actor.will(LoginToJiraViaJumpCloud(url))
+                actor.will(LoginToJiraViaGoogle(url))
                 actor.will(GetToJiraClockify())
                 runonce = False
 

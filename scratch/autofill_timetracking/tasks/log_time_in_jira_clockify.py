@@ -9,13 +9,14 @@ from dateutil.relativedelta import relativedelta
 from screenpy.actions import Eventually, Pause, See, SeeAllOf, Silently
 from screenpy.pacing import beat
 from screenpy.protocols import Performable
-from screenpy.resolutions import IsNot
-from screenpy_selenium import Target
+from screenpy.resolutions import EqualTo, IsNot
+from screenpy_selenium import Attribute, Target
 from screenpy_selenium.actions import Chain, Click, Enter, SwitchTo
 from screenpy_selenium.questions import Element, Text
 from screenpy_selenium.resolutions import Clickable, IsClickable, Visible
 
 from scratch.autofill_timetracking import readabledelta as rdd
+from scratch.autofill_timetracking.actions.conditionally import Conditionally
 from scratch.autofill_timetracking.actions.scroll_into_view import ScrollIntoView
 from scratch.autofill_timetracking.actions.wait import Wait
 from scratch.autofill_timetracking.by import By
@@ -23,25 +24,32 @@ from scratch.autofill_timetracking.by import By
 if TYPE_CHECKING:
     from screenpy import Actor
 
-MY_PINNED_FIELDS_SUMMARY_HEADER = Target("My Pinned Fields summary header").located(
+MY_PINNED_FIELDS_SECTION_HEADER = Target("My Pinned Fields section header").located(
     By.xpath(
         "//div[@data-testid='issue.views.issue-details.issue-layout.container-right']"
-        "//h2[contains(string(), 'My pinned fields')]/ancestor::summary"
+        "//h2[contains(string(), 'My pinned fields')]/ancestor::section"
     )
 )
 
 
-DETAIL_SUMMARY_HEADER = Target("Details summary header").located(
+DETAIL_SECTION_HEADER = Target("Details section header").located(
     By.xpath(
         "//div[@data-testid='issue.views.issue-details.issue-layout.container-right']"
-        "//h2[contains(string(), 'Details')]/ancestor::summary"
+        "//h2[contains(string(), 'Details')]/ancestor::section"
     )
 )
 
-CLOCKIFY_SUMMARY_HEADER = Target("Clockify Summary Header").located(
+CLOCKIFY_SECTION_HEADER = Target("Clockify section Header").located(
     By.xpath(
         "//div[@data-testid='issue.views.issue-details.issue-layout.container-right']"
-        "//h2[contains(string(), 'Clockify')]/ancestor::summary"
+        "//h2[contains(string(), 'Clockify')]/ancestor::section"
+    )
+)
+
+CLOCKIFY_SECTION_DIV = Target("Clockify section Header").located(
+    By.xpath(
+        "//div[@data-testid='issue.views.issue-details.issue-layout.container-right']"
+        "//h2[contains(string(), 'Clockify')]/ancestor::section/parent::div"
     )
 )
 
@@ -104,14 +112,18 @@ MONTH_MAP = {month: index for index, month in enumerate(calendar.month_name) if 
 class GetToJiraClockify(Performable):
     @beat("{} tries to GetToJiraClockify")
     def perform_as(self, actor: Actor):
-        actor.will(Wait.for_(MY_PINNED_FIELDS_SUMMARY_HEADER).to_be_clickable())
-        actor.will(Click(MY_PINNED_FIELDS_SUMMARY_HEADER))
-        actor.will(Wait.for_(DETAIL_SUMMARY_HEADER).to_stop_moving())
+        actor.will(Wait.for_(MY_PINNED_FIELDS_SECTION_HEADER).to_be_clickable())
+        actor.will(Eventually(Click(MY_PINNED_FIELDS_SECTION_HEADER)))
+        actor.will(Wait.for_(DETAIL_SECTION_HEADER).to_stop_moving())
 
-        actor.will(Click(DETAIL_SUMMARY_HEADER))
-        actor.will(Wait.for_(CLOCKIFY_SUMMARY_HEADER).to_stop_moving())
+        actor.will(Click(DETAIL_SECTION_HEADER))
+        actor.will(Wait.for_(CLOCKIFY_SECTION_HEADER).to_stop_moving())
 
-        actor.will(Click(CLOCKIFY_SUMMARY_HEADER))
+        actor.will(
+            Conditionally(Click(CLOCKIFY_SECTION_HEADER)).if_(
+                See(Attribute("open").of(CLOCKIFY_SECTION_DIV), EqualTo(None))
+            )
+        )
         actor.will(Silently(Wait.for_(CLOCKIFY_TIMESHEET_FRAME).to_appear()))
         actor.will(Silently(SwitchTo.the(CLOCKIFY_TIMESHEET_FRAME)))
         actor.will(Eventually(Silently(Click(CLOCKIFY_MANUAL_BUTTON))))
@@ -130,9 +142,8 @@ class GetToJiraClockify(Performable):
             )
         )
         actor.will(Silently(SwitchTo.default()))
-        actor.will(ScrollIntoView(CLOCKIFY_SUMMARY_HEADER).inline_start())
+        actor.will(Eventually(ScrollIntoView(CLOCKIFY_SECTION_HEADER).inline_start()))
         actor.will(Silently(SwitchTo.the(CLOCKIFY_TIMESHEET_FRAME)))
-        return
 
 
 class LogTime(Performable):
@@ -204,7 +215,7 @@ class ChooseDateFromPicker(Performable):
         dt_target_rounded = datetime(
             dt.year, dt.month, 1, dt.hour, dt.minute, dt.second, tzinfo=dt.tzinfo
         )
-        picker_dt = parse(f"{monthname} 1 {yeartext}")
+        picker_dt = parse(f"{monthname} 1 {yeartext}").replace(tzinfo=dt.tzinfo)
         d = relativedelta(dt_target_rounded, picker_dt)
         month_offset = d.months + (12 * d.years)
         button = PREV_MONTH if month_offset < 0 else NEXT_MONTH

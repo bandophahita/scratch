@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self
 
 from screenpy.protocols import Forgettable
+
+from scratch.autofill_timetracking.ability.authenticate_with_2fa import (
+    AuthenticateWith2FA,
+)
 
 if TYPE_CHECKING:
     from screenpy import Actor
@@ -29,13 +33,13 @@ class Authenticate(Forgettable):
             )
     """
 
-    @staticmethod
-    def using(credentials: Credentials) -> Authenticate:
-        return Authenticate(credentials)
+    @classmethod
+    def using(cls, credentials: Credentials) -> Self:
+        return cls(credentials)
 
-    @staticmethod
-    def with_user_pass(username: str, password: str) -> Authenticate:
-        return Authenticate(Credentials(username, password))
+    @classmethod
+    def with_user_pass(cls, username: str, password: str) -> Self:
+        return cls(Credentials(username, password))
 
     with_credentials = using
 
@@ -58,11 +62,27 @@ class Authenticate(Forgettable):
 
     password = get_password = to_get_password
 
-    @staticmethod
-    def as_(actor: Actor) -> Credentials:
-        return actor.ability_to(Authenticate).to_get_credentials()
+    @classmethod
+    def as_(cls, actor: Actor) -> Credentials:
+        return actor.ability_to(cls).to_get_credentials()
 
     def __repr__(self) -> str:
         return "authenticate"
 
     get_credentials = to_give_credentials = to_supply_credentials = to_get_credentials
+
+
+class AuthenticateGoogle(Authenticate):
+    pass
+
+
+class AuthenticateJumpcloud(Authenticate):
+    pass
+
+
+class AuthenticateWith2FAJumpcloud(AuthenticateWith2FA):
+    pass
+
+
+class AuthenticateWith2FAGoogle(AuthenticateWith2FA):
+    pass
