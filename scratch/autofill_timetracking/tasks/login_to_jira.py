@@ -83,8 +83,6 @@ class LoginToJiraViaGoogle(Performable):
     def perform_as(self, actor: Actor) -> None:
         google_password = AuthenticateGoogle.as_(actor).password
         google_username = AuthenticateGoogle.as_(actor).username
-        jc_password = AuthenticateJumpcloud.as_(actor).password
-        jc_username = AuthenticateJumpcloud.as_(actor).username
 
         actor.will(Open(self.url))
         actor.will(Wait.for_the(CONTINUE_WITH_GOOGLE_BUTTON).to_be_clickable())
@@ -120,32 +118,7 @@ class LoginToJiraViaGoogle(Performable):
         )
 
         # next we need to login via jumpcloud
-        # jumpcloud username
-        actor.will(Silently(Wait.for_(JUMPCLOUD_USERNAME).to_appear()))
-        actor.will(Enter(jc_username).into_the(JUMPCLOUD_USERNAME))
-        actor.will(Click(JUMPCLOUD_CONTINUE))
-        actor.will(Silently(Wait.for_(JUMPCLOUD_PASSWORD).to_appear()))
-        # actor.will(EnterPassword.into_the(JUMPCLOUD_PASSWORD))
-        actor.will(Enter.the_secret(jc_password).into_the(JUMPCLOUD_PASSWORD))
-        actor.will(Click(JUMPCLOUD_CONTINUE))
-
-        token = actor.uses_ability_to(AuthenticateWith2FAJumpcloud).to_get_token()
-
-        # t1, t2, t3, t4, t5, t6 = token
-        t1 = token[0]
-        t2 = token[1]
-        t3 = token[2]
-        t4 = token[3]
-        t5 = token[4]
-        t6 = token[5]
-
-        actor.will(Wait.for_(TOKEN_1).to_appear())
-        actor.will(Enter(t1).into(TOKEN_1))
-        actor.will(Enter(t2).into(TOKEN_2))
-        actor.will(Enter(t3).into(TOKEN_3))
-        actor.will(Enter(t4).into(TOKEN_4))
-        actor.will(Enter(t5).into(TOKEN_5))
-        actor.will(Enter(t6).into(TOKEN_6))
+        actor.will(StepsToLoginToJiraViaJumpCloud())
 
     @staticmethod
     def using(url: str) -> LoginToJiraViaGoogle:
@@ -155,24 +128,16 @@ class LoginToJiraViaGoogle(Performable):
         self.url = url
 
 
-class LoginToJiraViaJumpCloud(Performable):
-    @beat("[TASK] {} tries to LoginToJiraViaJumpCloud")
+class StepsToLoginToJiraViaJumpCloud(Performable):
     def perform_as(self, actor: Actor) -> None:
         jc_password = AuthenticateJumpcloud.as_(actor).password
         jc_username = AuthenticateJumpcloud.as_(actor).username
 
-        actor.will(Open(self.url))
-        # clockify username
-        actor.will(Silently(Wait.for_(USERNAME_FIELD).to_appear()))
-        actor.will(EnterUsername.into_the(USERNAME_FIELD))
-        actor.will(Click(LOGIN_SUBMIT_BUTTON))
-        actor.will(Silently(Wait.for_(JUMPCLOUD_USERNAME).to_appear()))
-
         # jumpcloud username
+        actor.will(Silently(Wait.for_(JUMPCLOUD_USERNAME).to_appear()))
         actor.will(Enter(jc_username).into_the(JUMPCLOUD_USERNAME))
         actor.will(Click(JUMPCLOUD_CONTINUE))
         actor.will(Silently(Wait.for_(JUMPCLOUD_PASSWORD).to_appear()))
-        actor.will(EnterPassword.into_the(JUMPCLOUD_PASSWORD))
         actor.will(Enter.the_secret(jc_password).into_the(JUMPCLOUD_PASSWORD))
         actor.will(Click(JUMPCLOUD_CONTINUE))
 
@@ -193,6 +158,20 @@ class LoginToJiraViaJumpCloud(Performable):
         actor.will(Enter(t4).into(TOKEN_4))
         actor.will(Enter(t5).into(TOKEN_5))
         actor.will(Enter(t6).into(TOKEN_6))
+
+
+class LoginToJiraViaJumpCloud(Performable):
+    @beat("[TASK] {} tries to LoginToJiraViaJumpCloud")
+    def perform_as(self, actor: Actor) -> None:
+        actor.will(Open(self.url))
+        # clockify username
+        actor.will(Silently(Wait.for_(USERNAME_FIELD).to_appear()))
+        actor.will(EnterUsername.into_the(USERNAME_FIELD))
+        actor.will(Click(LOGIN_SUBMIT_BUTTON))
+        actor.will(Silently(Wait.for_(JUMPCLOUD_USERNAME).to_appear()))
+
+        # jumpcloud username
+        actor.will(StepsToLoginToJiraViaJumpCloud())
 
     @staticmethod
     def using(url: str) -> LoginToJiraViaJumpCloud:

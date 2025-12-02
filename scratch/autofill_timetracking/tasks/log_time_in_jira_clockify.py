@@ -117,6 +117,9 @@ class GetToJiraClockify(Performable):
     @beat("{} tries to GetToJiraClockify")
     def perform_as(self, actor: Actor):
         actor.will(Wait.for_(MY_PINNED_FIELDS_SECTION_HEADER).to_be_clickable())
+        actor.will(Wait.for_(CLOCKIFY_SECTION_HEADER).to_be_clickable())
+        actor.will(Wait.for_(DETAIL_SECTION_HEADER).to_be_clickable())
+
         actor.will(Eventually(Click(MY_PINNED_FIELDS_SECTION_HEADER)))
         actor.will(Wait.for_(DETAIL_SECTION_HEADER).to_stop_moving())
 
