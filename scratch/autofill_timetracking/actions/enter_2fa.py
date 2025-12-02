@@ -9,8 +9,9 @@ from scratch.autofill_timetracking.ability import (
     AuthenticateWith2FAGoogle,
     AuthenticateWith2FAJumpcloud,
 )
-from scratch.autofill_timetracking.actions import Wait
 from scratch.autofill_timetracking.by import By
+
+from .wait import Wait
 
 
 class Enter2FAToken:
