@@ -11,3 +11,21 @@ update: update_lock_only
 	poetry install --with dev
 
 .PHONY: requirements sync update update_lock_only
+
+
+black-check:
+	black --check .
+
+black-fix:
+	black .
+
+ruff-check:
+	ruff check .
+
+ruff-fix:
+	ruff check . --fix --show-fixes
+
+mypy:
+	mypy .
+
+.PHONY: black-check black-fix ruff-check ruff-fix mypy
