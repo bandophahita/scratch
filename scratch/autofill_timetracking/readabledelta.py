@@ -30,8 +30,8 @@ MILLISECONDS = "milliseconds"
 MICROSECONDS = "microseconds"
 
 
-T_tunits = dict[str, dict[str, str]]
-T_delta = relativedelta | timedelta
+type T_tunits = dict[str, dict[str, str]]
+type T_delta = relativedelta | timedelta
 
 # @formatter:off
 # fmt: off
@@ -84,7 +84,7 @@ class ReadableDelta(timedelta):
             kwargs[DAYS] += 365 * years
         elif years:
             arg0 = args[0] if args else 0
-            args = (365 * years + arg0,) + args[1:]
+            args = (365 * years + arg0, *args[1:])
         return timedelta.__new__(cls, *args, **kwargs)
 
     @classmethod
@@ -332,6 +332,9 @@ def to_string(
 def extract_units(delta: timedelta, keys: Sequence[str] | None = None) -> list[str]:
     """
     Given a timedelta, determine all the time magnitudes within said delta.
+
+    :param timedelta delta:
+    :return:
     """
     if keys is None:
         keys = TIMEDELTA_ALLOWED_KEYS
