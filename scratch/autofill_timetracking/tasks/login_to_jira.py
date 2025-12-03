@@ -18,7 +18,6 @@ from scratch.autofill_timetracking.ability import (
 )
 from scratch.autofill_timetracking.actions import (
     EnterGoogle2FAToken,
-    EnterPassword,
     EnterUsername,
 )
 from scratch.autofill_timetracking.by import By
