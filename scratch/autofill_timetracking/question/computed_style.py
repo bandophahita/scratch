@@ -58,6 +58,7 @@ class ComputedStyle(Answerable):
 
 class ComputedStyleBefore(ComputedStyle):
     """Hacked version of ComputedStyle to attempt grabbing `body::before`"""
+
     @beat("{} examines computed style '{property}' of {target_to_log}")
     def answered_by(self, actor: Actor) -> object:
         driver = actor.ability_to(BrowseTheWeb).browser
