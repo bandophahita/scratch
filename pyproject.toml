@@ -1,18 +1,16 @@
 [tool.poetry]
 name = "scratch"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 authors = ["Marcel Wilson <trenchrats@gmail.com>"]
 license = "MIT"
+
 
 [tool.poetry.dependencies]
 python = "^3.12"
 clockify-api-client = ">=0.1.0"
 python-dateutil = "*"
 pytz = "*"
-mypy = "*"
-black = "*"
-flake8 = "^5.0.4"
 jira = ">=3.4.0"
 #pyderman = "^3.3.0"
 semantic-version = ">=2.10.0"
@@ -21,16 +19,22 @@ screenpy = "*"
 #screenpy = { git = "git@github.com:ScreenPyHQ/screenpy.git", branch = "trunk"}
 screenpy-selenium = { git = "git@github.com:ScreenPyHQ/screenpy_selenium.git", branch = "trunk"}
 screenpy-pyotp = "^4.0.1"
-isort = "*"
 keyring = "^23.9.0"
 pytest = "*"
-ruff = "*"
 setup-selenium-testing = "*"
 
-[tool.poetry.dev-dependencies]
+
+[tool.poetry.group.dev.dependencies]
+flake8 = "^5.0.4"
+ruff = "*"
+black = "*"
+mypy = "*"
+isort = "*"  # used in generate_data
+coverage = "*"
+setuptools = "*"
+types-requests = "*"
 types-pytz = "*"
 types-python-dateutil = "*"
-types-requests = "*"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -39,7 +43,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 line-length = 88
-target-version = "py310"
+target-version = "py312"
 output-format = "concise"
 extend-exclude = [
     ".github",
@@ -70,8 +74,12 @@ extend-exclude = [
 ]
 
 [tool.ruff.lint]
-select = ["ALL"]
+select = [
+    "ALL",
+]
 ignore = [
+    "RUF059", # unused unpacked variable
+
     # full rule sets
     "ARG",  # flake8-unused-arguments
     "C90", # mccabe
@@ -131,7 +139,6 @@ ignore = [
     "S101", # use of assert
     "TC006",  # cast wants str for types (blech!)
     "TRY003",  # Avoid specifying long messages outside the exception class
-    "UP038", # use `int | float` in `isinstance` *slower
 ]
 
 extend-safe-fixes = [
@@ -148,7 +155,7 @@ extend-safe-fixes = [
     "TCH001", "TCH002", "TCH003", "TCH004",
     "TID252", #absolute import over relative
     "TRY400",
-    "UP007",
+    "UP007", "UP046", "UP047",
     "UP040",
     "W291",
 ]
@@ -158,21 +165,54 @@ extend-safe-fixes = [
 
 [tool.ruff.lint.isort]
 combine-as-imports = true
-split-on-trailing-comma = true
+split-on-trailing-comma = false
+
 
 [tool.ruff.lint.flake8-pytest-style]
 mark-parentheses = false
 
+
 [tool.ruff.lint.pycodestyle]
 ignore-overlong-task-comments = true
 
-#[tool.ruff.flake8-annotations]
-#mypy-init-return = true
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
 
 [tool.ruff.lint.flake8-annotations]
-# ignore returns types for functions that implicity or explicitly only return None
-suppress-none-returning = true
 allow-star-arg-any = true
+
+
+[tool.ruff.lint.flake8-type-checking]
+#strict = true
+
+[tool.ruff.format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"
+
+# Enable auto-formatting of code examples in docstrings. Markdown,
+# reStructuredText code/literal blocks and doctests are all supported.
+#
+# This is currently disabled by default, but it is planned for this
+# to be opt-out in the future.
+docstring-code-format = false
+
+# Set the line length limit used when formatting code snippets in
+# docstrings.
+#
+# This only has an effect when the `docstring-code-format` setting is
+# enabled.
+docstring-code-line-length = "dynamic"
 
 [tool.black]
 line-length = 88
