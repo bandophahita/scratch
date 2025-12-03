@@ -54,9 +54,7 @@ from scratch.autofill_timetracking.tasks.log_time_in_jira_clockify import (
     GetToJiraClockify,
     LogTime,
 )
-from scratch.autofill_timetracking.tasks.login_to_jira import (
-    LoginToJiraViaGoogle,
-)
+from scratch.autofill_timetracking.tasks.login_to_jira import LoginToJiraViaGoogle
 
 if TYPE_CHECKING:
     from selenium.webdriver.remote.webdriver import WebDriver
@@ -126,7 +124,7 @@ def set_keychain(
     value: str,
     key: str,
     keyname: str | None = None,
-):
+) -> None:
     keyname = keyname or key
     if (default is None or default != value) and key in args:
         keyring.set_password(KEY, keyname, f"{value}")

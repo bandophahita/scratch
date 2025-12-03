@@ -16,10 +16,7 @@ from scratch.autofill_timetracking.ability import (
     AuthenticateJumpcloud,
     AuthenticateWith2FAJumpcloud,
 )
-from scratch.autofill_timetracking.actions import (
-    EnterGoogle2FAToken,
-    EnterUsername,
-)
+from scratch.autofill_timetracking.actions import EnterGoogle2FAToken, EnterUsername
 from scratch.autofill_timetracking.by import By
 
 if TYPE_CHECKING:
@@ -123,7 +120,7 @@ class LoginToJiraViaGoogle(Performable):
     def using(url: str) -> LoginToJiraViaGoogle:
         return LoginToJiraViaGoogle(url)
 
-    def __init__(self, url: str):
+    def __init__(self, url: str) -> None:
         self.url = url
 
 
@@ -176,5 +173,5 @@ class LoginToJiraViaJumpCloud(Performable):
     def using(url: str) -> LoginToJiraViaJumpCloud:
         return LoginToJiraViaJumpCloud(url)
 
-    def __init__(self, url: str):
+    def __init__(self, url: str) -> None:
         self.url = url

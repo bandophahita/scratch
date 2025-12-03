@@ -1,10 +1,15 @@
-# ruff: noqa: E501
 """
 This module need to be imported before any of the other selenium modules to work proper
 """
+
+from __future__ import annotations
+
 import contextlib
 import sys
-from collections.abc import Iterable
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 
 def uncache(exclude: Iterable[str]) -> None:
@@ -39,7 +44,7 @@ def uncache(exclude: Iterable[str]) -> None:
 
 
 def monkeypatch() -> None:
-    import selenium.common.exceptions
+    import selenium.common.exceptions  # noqa: PLC0415
 
     def __str_replacement__(
         self: (
@@ -65,7 +70,7 @@ def monkeypatch() -> None:
         __str_replacement__
     )
 
-    from selenium import webdriver
+    from selenium import webdriver  # noqa: PLC0415
 
     def __del_replacement__(
         self: webdriver.Firefox | webdriver.Chrome | webdriver.Edge,

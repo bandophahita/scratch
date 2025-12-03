@@ -328,7 +328,7 @@ def enable_logger(
     logger: ScreenpyLogger,
     level: int = ScreenpyLogger.DEBUG,
     fmt: logging.Formatter | None = None,
-):
+) -> None:
     """DO NOT USE THIS FUNCTION WHEN USING automation.trace."""
     if fmt is None:
         # fmtstr = '{asctime} {filename}:{lineno} {levelname:>8} [{name}] {msg} '

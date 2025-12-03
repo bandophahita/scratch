@@ -115,7 +115,7 @@ MONTH_MAP = {month: index for index, month in enumerate(calendar.month_name) if 
 
 class GetToJiraClockify(Performable):
     @beat("{} tries to GetToJiraClockify")
-    def perform_as(self, actor: Actor):
+    def perform_as(self, actor: Actor) -> None:
         actor.will(Wait.for_(MY_PINNED_FIELDS_SECTION_HEADER).to_be_clickable())
         actor.will(Wait.for_(CLOCKIFY_SECTION_HEADER).to_be_clickable())
         actor.will(Wait.for_(DETAIL_SECTION_HEADER).to_be_clickable())
@@ -155,7 +155,7 @@ class GetToJiraClockify(Performable):
 
 class LogTime(Performable):
     @beat("{} tries to LogTime {info_to_log}")
-    def perform_as(self, actor: Actor):
+    def perform_as(self, actor: Actor) -> None:
         actor.will(ChooseDateFromPicker(self.date))
         hours_value = self._convert_timedelta(self.delta)
 
@@ -201,7 +201,7 @@ class LogTime(Performable):
 
     def __init__(
         self, date: datetime, delta: timedelta, starttime: tdtime, project: Target
-    ):
+    ) -> None:
         self.date = date
         self.delta = delta
         self.starttime = starttime
@@ -210,7 +210,7 @@ class LogTime(Performable):
 
 class ChooseDateFromPicker(Performable):
     @beat("{} tries to ChooseDateFromPicker {dt_to_log}")
-    def perform_as(self, actor: Actor):
+    def perform_as(self, actor: Actor) -> None:
         dt = self.dt
 
         actor.will(Silently(Eventually(Click(DATE_PICKER))))
@@ -256,5 +256,5 @@ class ChooseDateFromPicker(Performable):
     def dt_to_log(self) -> str:
         return self.dt.strftime("%m/%d/%Y")
 
-    def __init__(self, dt: datetime):
+    def __init__(self, dt: datetime) -> None:
         self.dt = dt
